@@ -1,0 +1,717 @@
+<html>
+<head>
+<title>student.c</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #7a7e85;}
+.s1 { color: #bcbec4;}
+.s2 { color: #b3ae60;}
+.s3 { color: #6aab73;}
+.s4 { color: #cf8e6d;}
+.s5 { color: #bcbec4;}
+.s6 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#191a1c">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+student.c</font>
+</center></td></tr></table>
+<pre><span class="s0">/* 
+ * Member B responsibility: 
+ * Student record management, linked-list operations and input validation. 
+ */</span>
+<span class="s2">#include </span><span class="s3">&lt;stdio.h&gt;</span>
+<span class="s2">#include </span><span class="s3">&lt;stdlib.h&gt;</span>
+<span class="s2">#include </span><span class="s3">&lt;string.h&gt;</span>
+<span class="s2">#include </span><span class="s3">&lt;ctype.h&gt;</span>
+<span class="s2">#include </span><span class="s3">&quot;student.h&quot;</span>
+<span class="s0">/* Remove remaining characters in stdin after unusual input. */</span>
+<span class="s4">void </span><span class="s1">clearInputBuffer</span><span class="s5">(</span><span class="s4">void</span><span class="s5">) {</span>
+    <span class="s4">int </span><span class="s1">ch</span><span class="s5">;</span>
+    <span class="s4">while </span><span class="s5">((</span><span class="s1">ch </span><span class="s5">= </span><span class="s1">getchar</span><span class="s5">()) != </span><span class="s3">'</span><span class="s4">\n</span><span class="s3">' </span><span class="s5">&amp;&amp; </span><span class="s1">ch </span><span class="s5">!= </span><span class="s1">EOF</span><span class="s5">) {</span>
+    <span class="s5">}</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">pauseScreen</span><span class="s5">(</span><span class="s4">void</span><span class="s5">) {</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Press Enter to continue...&quot;</span><span class="s5">);</span>
+    <span class="s1">fflush</span><span class="s5">(</span><span class="s1">stdout</span><span class="s5">);</span>
+    <span class="s1">clearInputBuffer</span><span class="s5">();</span>
+<span class="s5">}</span>
+<span class="s0">/* Read y/n confirmation. It is used before risky operations. */</span>
+<span class="s4">int </span><span class="s1">askYesNo</span><span class="s5">(</span><span class="s4">const char </span><span class="s5">*</span><span class="s1">prompt</span><span class="s5">) {</span>
+    <span class="s4">char </span><span class="s1">line</span><span class="s5">[</span><span class="s1">LINE_LEN</span><span class="s5">];</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s6">1</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;%s&quot;</span><span class="s5">, </span><span class="s1">prompt</span><span class="s5">);</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">fgets</span><span class="s5">(</span><span class="s1">line</span><span class="s5">, </span><span class="s4">sizeof</span><span class="s5">(</span><span class="s1">line</span><span class="s5">), </span><span class="s1">stdin</span><span class="s5">) == </span><span class="s1">NULL</span><span class="s5">) {</span>
+            <span class="s1">clearInputBuffer</span><span class="s5">();</span>
+            <span class="s4">continue</span><span class="s5">;</span>
+        <span class="s5">}</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">line</span><span class="s5">[</span><span class="s6">0</span><span class="s5">] == </span><span class="s3">'y' </span><span class="s5">|| </span><span class="s1">line</span><span class="s5">[</span><span class="s6">0</span><span class="s5">] == </span><span class="s3">'Y'</span><span class="s5">) </span><span class="s4">return </span><span class="s6">1</span><span class="s5">;</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">line</span><span class="s5">[</span><span class="s6">0</span><span class="s5">] == </span><span class="s3">'n' </span><span class="s5">|| </span><span class="s1">line</span><span class="s5">[</span><span class="s6">0</span><span class="s5">] == </span><span class="s3">'N'</span><span class="s5">) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Please input y or n.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s5">}</span>
+<span class="s5">}</span>
+<span class="s0">/* Read an integer in a fixed range to avoid invalid menu choices. */</span>
+<span class="s4">int </span><span class="s1">readInt</span><span class="s5">(</span><span class="s4">const char </span><span class="s5">*</span><span class="s1">prompt</span><span class="s5">, </span><span class="s4">int </span><span class="s1">minValue</span><span class="s5">, </span><span class="s4">int </span><span class="s1">maxValue</span><span class="s5">) {</span>
+    <span class="s4">char </span><span class="s1">line</span><span class="s5">[</span><span class="s1">LINE_LEN</span><span class="s5">];</span>
+    <span class="s4">int </span><span class="s1">value</span><span class="s5">;</span>
+    <span class="s4">char </span><span class="s1">extra</span><span class="s5">;</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s6">1</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;%s&quot;</span><span class="s5">, </span><span class="s1">prompt</span><span class="s5">);</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">fgets</span><span class="s5">(</span><span class="s1">line</span><span class="s5">, </span><span class="s4">sizeof</span><span class="s5">(</span><span class="s1">line</span><span class="s5">), </span><span class="s1">stdin</span><span class="s5">) == </span><span class="s1">NULL</span><span class="s5">) {</span>
+            <span class="s1">clearInputBuffer</span><span class="s5">();</span>
+            <span class="s4">continue</span><span class="s5">;</span>
+        <span class="s5">}</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">sscanf</span><span class="s5">(</span><span class="s1">line</span><span class="s5">, </span><span class="s3">&quot;%d %c&quot;</span><span class="s5">, &amp;</span><span class="s1">value</span><span class="s5">, &amp;</span><span class="s1">extra</span><span class="s5">) == </span><span class="s6">1 </span><span class="s5">&amp;&amp;</span>
+            <span class="s1">value </span><span class="s5">&gt;= </span><span class="s1">minValue </span><span class="s5">&amp;&amp; </span><span class="s1">value </span><span class="s5">&lt;= </span><span class="s1">maxValue</span><span class="s5">) {</span>
+            <span class="s4">return </span><span class="s1">value</span><span class="s5">;</span>
+        <span class="s5">}</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Input error. Please enter an integer from %d to %d.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">,</span>
+               <span class="s1">minValue</span><span class="s5">, </span><span class="s1">maxValue</span><span class="s5">);</span>
+    <span class="s5">}</span>
+<span class="s5">}</span>
+<span class="s0">/* Read a floating-point number in a fixed range. */</span>
+<span class="s4">float </span><span class="s1">readFloat</span><span class="s5">(</span><span class="s4">const char </span><span class="s5">*</span><span class="s1">prompt</span><span class="s5">, </span><span class="s4">float </span><span class="s1">minValue</span><span class="s5">, </span><span class="s4">float </span><span class="s1">maxValue</span><span class="s5">) {</span>
+    <span class="s4">char </span><span class="s1">line</span><span class="s5">[</span><span class="s1">LINE_LEN</span><span class="s5">];</span>
+    <span class="s4">float </span><span class="s1">value</span><span class="s5">;</span>
+    <span class="s4">char </span><span class="s1">extra</span><span class="s5">;</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s6">1</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;%s&quot;</span><span class="s5">, </span><span class="s1">prompt</span><span class="s5">);</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">fgets</span><span class="s5">(</span><span class="s1">line</span><span class="s5">, </span><span class="s4">sizeof</span><span class="s5">(</span><span class="s1">line</span><span class="s5">), </span><span class="s1">stdin</span><span class="s5">) == </span><span class="s1">NULL</span><span class="s5">) {</span>
+            <span class="s1">clearInputBuffer</span><span class="s5">();</span>
+            <span class="s4">continue</span><span class="s5">;</span>
+        <span class="s5">}</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">sscanf</span><span class="s5">(</span><span class="s1">line</span><span class="s5">, </span><span class="s3">&quot;%f %c&quot;</span><span class="s5">, &amp;</span><span class="s1">value</span><span class="s5">, &amp;</span><span class="s1">extra</span><span class="s5">) == </span><span class="s6">1 </span><span class="s5">&amp;&amp;</span>
+            <span class="s1">value </span><span class="s5">&gt;= </span><span class="s1">minValue </span><span class="s5">&amp;&amp; </span><span class="s1">value </span><span class="s5">&lt;= </span><span class="s1">maxValue</span><span class="s5">) {</span>
+            <span class="s4">return </span><span class="s1">value</span><span class="s5">;</span>
+        <span class="s5">}</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Input error. Please enter a number from %.2f to %.2f.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">,</span>
+               <span class="s1">minValue</span><span class="s5">, </span><span class="s1">maxValue</span><span class="s5">);</span>
+    <span class="s5">}</span>
+<span class="s5">}</span>
+<span class="s4">float </span><span class="s1">readScore</span><span class="s5">(</span><span class="s4">const char </span><span class="s5">*</span><span class="s1">prompt</span><span class="s5">) {</span>
+    <span class="s4">return </span><span class="s1">readFloat</span><span class="s5">(</span><span class="s1">prompt</span><span class="s5">, </span><span class="s6">0.0f</span><span class="s5">, </span><span class="s6">100.0f</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s0">/* Read a word without spaces. Names in data.txt also use this rule. */</span>
+<span class="s4">void </span><span class="s1">readString</span><span class="s5">(</span><span class="s4">const char </span><span class="s5">*</span><span class="s1">prompt</span><span class="s5">, </span><span class="s4">char </span><span class="s5">*</span><span class="s1">buffer</span><span class="s5">, </span><span class="s4">int </span><span class="s1">size</span><span class="s5">) {</span>
+    <span class="s4">char </span><span class="s1">line</span><span class="s5">[</span><span class="s1">LINE_LEN</span><span class="s5">], </span><span class="s1">temp</span><span class="s5">[</span><span class="s1">LINE_LEN</span><span class="s5">];</span>
+    <span class="s4">int </span><span class="s1">len</span><span class="s5">;</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s6">1</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;%s&quot;</span><span class="s5">, </span><span class="s1">prompt</span><span class="s5">);</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">fgets</span><span class="s5">(</span><span class="s1">line</span><span class="s5">, </span><span class="s4">sizeof</span><span class="s5">(</span><span class="s1">line</span><span class="s5">), </span><span class="s1">stdin</span><span class="s5">) == </span><span class="s1">NULL</span><span class="s5">) {</span>
+            <span class="s1">clearInputBuffer</span><span class="s5">();</span>
+            <span class="s4">continue</span><span class="s5">;</span>
+        <span class="s5">}</span>
+        <span class="s1">line</span><span class="s5">[</span><span class="s1">strcspn</span><span class="s5">(</span><span class="s1">line</span><span class="s5">, </span><span class="s3">&quot;</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">)] = </span><span class="s3">'</span><span class="s4">\0</span><span class="s3">'</span><span class="s5">;</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">sscanf</span><span class="s5">(</span><span class="s1">line</span><span class="s5">, </span><span class="s3">&quot;%255s&quot;</span><span class="s5">, </span><span class="s1">temp</span><span class="s5">) == </span><span class="s6">1</span><span class="s5">) {</span>
+            <span class="s1">len </span><span class="s5">= (</span><span class="s4">int</span><span class="s5">)</span><span class="s1">strlen</span><span class="s5">(</span><span class="s1">temp</span><span class="s5">);</span>
+            <span class="s4">if </span><span class="s5">(</span><span class="s1">len </span><span class="s5">&gt; </span><span class="s6">0 </span><span class="s5">&amp;&amp; </span><span class="s1">len </span><span class="s5">&lt; </span><span class="s1">size</span><span class="s5">) {</span>
+                <span class="s1">strcpy</span><span class="s5">(</span><span class="s1">buffer</span><span class="s5">, </span><span class="s1">temp</span><span class="s5">);</span>
+                <span class="s4">return</span><span class="s5">;</span>
+            <span class="s5">}</span>
+        <span class="s5">}</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Input cannot be empty or longer than %d characters.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">size </span><span class="s5">- </span><span class="s6">1</span><span class="s5">);</span>
+    <span class="s5">}</span>
+<span class="s5">}</span>
+<span class="s0">/* Create a list with a head node. The head node does not store real data. */</span>
+<span class="s1">Node </span><span class="s5">*</span><span class="s1">createList</span><span class="s5">(</span><span class="s4">void</span><span class="s5">) {</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">head </span><span class="s5">= (</span><span class="s1">Node </span><span class="s5">*)</span><span class="s1">malloc</span><span class="s5">(</span><span class="s4">sizeof</span><span class="s5">(</span><span class="s1">Node</span><span class="s5">));</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">head </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">memset</span><span class="s5">(&amp;</span><span class="s1">head</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">, </span><span class="s6">0</span><span class="s5">, </span><span class="s4">sizeof</span><span class="s5">(</span><span class="s1">Student</span><span class="s5">));</span>
+        <span class="s1">head</span><span class="s5">-&gt;</span><span class="s1">next </span><span class="s5">= </span><span class="s1">NULL</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s4">return </span><span class="s1">head</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s1">Node </span><span class="s5">*</span><span class="s1">createNode</span><span class="s5">(</span><span class="s1">Student stu</span><span class="s5">) {</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">node </span><span class="s5">= (</span><span class="s1">Node </span><span class="s5">*)</span><span class="s1">malloc</span><span class="s5">(</span><span class="s4">sizeof</span><span class="s5">(</span><span class="s1">Node</span><span class="s5">));</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">node </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) </span><span class="s4">return </span><span class="s1">NULL</span><span class="s5">;</span>
+    <span class="s1">node</span><span class="s5">-&gt;</span><span class="s1">data </span><span class="s5">= </span><span class="s1">stu</span><span class="s5">;</span>
+    <span class="s1">node</span><span class="s5">-&gt;</span><span class="s1">next </span><span class="s5">= </span><span class="s1">NULL</span><span class="s5">;</span>
+    <span class="s4">return </span><span class="s1">node</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s0">/* Release every node including the head node. */</span>
+<span class="s4">void </span><span class="s1">freeList</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">p </span><span class="s5">= </span><span class="s1">head</span><span class="s5">, *</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">p </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">next </span><span class="s5">= </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+        <span class="s1">free</span><span class="s5">(</span><span class="s1">p</span><span class="s5">);</span>
+        <span class="s1">p </span><span class="s5">= </span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s5">}</span>
+<span class="s5">}</span>
+<span class="s0">/* Clear all real student nodes but keep the head node for later use. */</span>
+<span class="s4">void </span><span class="s1">clearList</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">p</span><span class="s5">, *</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">head </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) </span><span class="s4">return</span><span class="s5">;</span>
+    <span class="s1">p </span><span class="s5">= </span><span class="s1">head</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">p </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">next </span><span class="s5">= </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+        <span class="s1">free</span><span class="s5">(</span><span class="s1">p</span><span class="s5">);</span>
+        <span class="s1">p </span><span class="s5">= </span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">head</span><span class="s5">-&gt;</span><span class="s1">next </span><span class="s5">= </span><span class="s1">NULL</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s4">int </span><span class="s1">isListEmpty</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s4">return </span><span class="s1">head </span><span class="s5">== </span><span class="s1">NULL </span><span class="s5">|| </span><span class="s1">head</span><span class="s5">-&gt;</span><span class="s1">next </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s4">int </span><span class="s1">getListLength</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s4">int </span><span class="s1">count </span><span class="s5">= </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">p </span><span class="s5">= </span><span class="s1">head </span><span class="s5">== </span><span class="s1">NULL ? NULL : head</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">p </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">count</span><span class="s5">++;</span>
+        <span class="s1">p </span><span class="s5">= </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s4">return </span><span class="s1">count</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s1">Node </span><span class="s5">*</span><span class="s1">getLastNode</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">p </span><span class="s5">= </span><span class="s1">head</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">p </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) </span><span class="s4">return </span><span class="s1">NULL</span><span class="s5">;</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">next </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) </span><span class="s1">p </span><span class="s5">= </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s4">return </span><span class="s1">p</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s1">Node </span><span class="s5">*</span><span class="s1">getNodeByIndex</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">, </span><span class="s4">int </span><span class="s1">index</span><span class="s5">) {</span>
+    <span class="s4">int </span><span class="s1">i </span><span class="s5">= </span><span class="s6">1</span><span class="s5">;</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">p </span><span class="s5">= </span><span class="s1">head </span><span class="s5">== </span><span class="s1">NULL ? NULL : head</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">p </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">i </span><span class="s5">== </span><span class="s1">index</span><span class="s5">) </span><span class="s4">return </span><span class="s1">p</span><span class="s5">;</span>
+        <span class="s1">i</span><span class="s5">++;</span>
+        <span class="s1">p </span><span class="s5">= </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s4">return </span><span class="s1">NULL</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s0">/* Find the previous node, which makes deletion and insertion easier. */</span>
+<span class="s1">Node </span><span class="s5">*</span><span class="s1">findPrevByNum</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">, </span><span class="s4">const char </span><span class="s5">*</span><span class="s1">num</span><span class="s5">) {</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">p</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">head </span><span class="s5">== </span><span class="s1">NULL </span><span class="s5">|| </span><span class="s1">num </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) </span><span class="s4">return </span><span class="s1">NULL</span><span class="s5">;</span>
+    <span class="s1">p </span><span class="s5">= </span><span class="s1">head</span><span class="s5">;</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">next </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">strcmp</span><span class="s5">(</span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">.</span><span class="s1">num</span><span class="s5">, </span><span class="s1">num</span><span class="s5">) == </span><span class="s6">0</span><span class="s5">) </span><span class="s4">return </span><span class="s1">p</span><span class="s5">;</span>
+        <span class="s1">p </span><span class="s5">= </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s4">return </span><span class="s1">NULL</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s1">Node </span><span class="s5">*</span><span class="s1">findByNum</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">, </span><span class="s4">const char </span><span class="s5">*</span><span class="s1">num</span><span class="s5">) {</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">prev </span><span class="s5">= </span><span class="s1">findPrevByNum</span><span class="s5">(</span><span class="s1">head</span><span class="s5">, </span><span class="s1">num</span><span class="s5">);</span>
+    <span class="s4">return </span><span class="s1">prev </span><span class="s5">== </span><span class="s1">NULL ? NULL : prev</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s4">int </span><span class="s1">isNumExist</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">, </span><span class="s4">const char </span><span class="s5">*</span><span class="s1">num</span><span class="s5">) {</span>
+    <span class="s4">return </span><span class="s1">findByNum</span><span class="s5">(</span><span class="s1">head</span><span class="s5">, </span><span class="s1">num</span><span class="s5">) != </span><span class="s1">NULL</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s4">int </span><span class="s1">isNameExist</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">, </span><span class="s4">const char </span><span class="s5">*</span><span class="s1">name</span><span class="s5">) {</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">p </span><span class="s5">= </span><span class="s1">head </span><span class="s5">== </span><span class="s1">NULL ? NULL : head</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">p </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">strcmp</span><span class="s5">(</span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">.</span><span class="s1">name</span><span class="s5">, </span><span class="s1">name</span><span class="s5">) == </span><span class="s6">0</span><span class="s5">) </span><span class="s4">return </span><span class="s6">1</span><span class="s5">;</span>
+        <span class="s1">p </span><span class="s5">= </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s4">int </span><span class="s1">appendStudent</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">, </span><span class="s1">Student stu</span><span class="s5">) {</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">last</span><span class="s5">, *</span><span class="s1">node</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">head </span><span class="s5">== </span><span class="s1">NULL </span><span class="s5">|| </span><span class="s1">isNumExist</span><span class="s5">(</span><span class="s1">head</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">num</span><span class="s5">)) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s1">node </span><span class="s5">= </span><span class="s1">createNode</span><span class="s5">(</span><span class="s1">stu</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">node </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s1">last </span><span class="s5">= </span><span class="s1">getLastNode</span><span class="s5">(</span><span class="s1">head</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">last </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">free</span><span class="s5">(</span><span class="s1">node</span><span class="s5">);</span>
+        <span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">last</span><span class="s5">-&gt;</span><span class="s1">next </span><span class="s5">= </span><span class="s1">node</span><span class="s5">;</span>
+    <span class="s4">return </span><span class="s6">1</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s0">/* Insert a new node before the node whose student number is beforeNum. */</span>
+<span class="s4">int </span><span class="s1">insertBeforeNum</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">, </span><span class="s4">const char </span><span class="s5">*</span><span class="s1">beforeNum</span><span class="s5">, </span><span class="s1">Student stu</span><span class="s5">) {</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">prev</span><span class="s5">, *</span><span class="s1">node</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">head </span><span class="s5">== </span><span class="s1">NULL </span><span class="s5">|| </span><span class="s1">beforeNum </span><span class="s5">== </span><span class="s1">NULL </span><span class="s5">|| </span><span class="s1">isNumExist</span><span class="s5">(</span><span class="s1">head</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">num</span><span class="s5">)) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s1">prev </span><span class="s5">= </span><span class="s1">findPrevByNum</span><span class="s5">(</span><span class="s1">head</span><span class="s5">, </span><span class="s1">beforeNum</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">prev </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s1">node </span><span class="s5">= </span><span class="s1">createNode</span><span class="s5">(</span><span class="s1">stu</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">node </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s1">node</span><span class="s5">-&gt;</span><span class="s1">next </span><span class="s5">= </span><span class="s1">prev</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s1">prev</span><span class="s5">-&gt;</span><span class="s1">next </span><span class="s5">= </span><span class="s1">node</span><span class="s5">;</span>
+    <span class="s4">return </span><span class="s6">1</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s0">/* Delete by student number. If removed is not NULL, return deleted data to caller. */</span>
+<span class="s4">int </span><span class="s1">removeByNum</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">, </span><span class="s4">const char </span><span class="s5">*</span><span class="s1">num</span><span class="s5">, </span><span class="s1">Student </span><span class="s5">*</span><span class="s1">removed</span><span class="s5">) {</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">prev</span><span class="s5">, *</span><span class="s1">target</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">head </span><span class="s5">== </span><span class="s1">NULL </span><span class="s5">|| </span><span class="s1">num </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s1">prev </span><span class="s5">= </span><span class="s1">findPrevByNum</span><span class="s5">(</span><span class="s1">head</span><span class="s5">, </span><span class="s1">num</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">prev </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s1">target </span><span class="s5">= </span><span class="s1">prev</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">removed </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) *</span><span class="s1">removed </span><span class="s5">= </span><span class="s1">target</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">;</span>
+    <span class="s1">prev</span><span class="s5">-&gt;</span><span class="s1">next </span><span class="s5">= </span><span class="s1">target</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s1">free</span><span class="s5">(</span><span class="s1">target</span><span class="s5">);</span>
+    <span class="s4">return </span><span class="s6">1</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">swapStudentData</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">a</span><span class="s5">, </span><span class="s1">Node </span><span class="s5">*</span><span class="s1">b</span><span class="s5">) {</span>
+    <span class="s1">Student temp</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">a </span><span class="s5">== </span><span class="s1">NULL </span><span class="s5">|| </span><span class="s1">b </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) </span><span class="s4">return</span><span class="s5">;</span>
+    <span class="s1">temp </span><span class="s5">= </span><span class="s1">a</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">;</span>
+    <span class="s1">a</span><span class="s5">-&gt;</span><span class="s1">data </span><span class="s5">= </span><span class="s1">b</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">;</span>
+    <span class="s1">b</span><span class="s5">-&gt;</span><span class="s1">data </span><span class="s5">= </span><span class="s1">temp</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s4">int </span><span class="s1">isScoreValid</span><span class="s5">(</span><span class="s4">float </span><span class="s1">score</span><span class="s5">) {</span>
+    <span class="s4">return </span><span class="s1">score </span><span class="s5">&gt;= </span><span class="s6">0.0f </span><span class="s5">&amp;&amp; </span><span class="s1">score </span><span class="s5">&lt;= </span><span class="s6">100.0f</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s0">/* Student number must be all digits and have a reasonable length. */</span>
+<span class="s4">int </span><span class="s1">isNumFormatValid</span><span class="s5">(</span><span class="s4">const char </span><span class="s5">*</span><span class="s1">num</span><span class="s5">) {</span>
+    <span class="s4">int </span><span class="s1">i</span><span class="s5">, </span><span class="s1">len</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">num </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s1">len </span><span class="s5">= (</span><span class="s4">int</span><span class="s5">)</span><span class="s1">strlen</span><span class="s5">(</span><span class="s1">num</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">len </span><span class="s5">&lt; </span><span class="s6">4 </span><span class="s5">|| </span><span class="s1">len </span><span class="s5">&gt;= </span><span class="s1">NUM_LEN</span><span class="s5">) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s4">for </span><span class="s5">(</span><span class="s1">i </span><span class="s5">= </span><span class="s6">0</span><span class="s5">; </span><span class="s1">i </span><span class="s5">&lt; </span><span class="s1">len</span><span class="s5">; </span><span class="s1">i</span><span class="s5">++) {</span>
+        <span class="s4">if </span><span class="s5">(!</span><span class="s1">isdigit</span><span class="s5">((</span><span class="s4">unsigned char</span><span class="s5">)</span><span class="s1">num</span><span class="s5">[</span><span class="s1">i</span><span class="s5">])) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s4">return </span><span class="s6">1</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s0">/* Student name is stored as one word, so spaces are not allowed. */</span>
+<span class="s4">int </span><span class="s1">isNameFormatValid</span><span class="s5">(</span><span class="s4">const char </span><span class="s5">*</span><span class="s1">name</span><span class="s5">) {</span>
+    <span class="s4">int </span><span class="s1">i</span><span class="s5">, </span><span class="s1">len</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">name </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s1">len </span><span class="s5">= (</span><span class="s4">int</span><span class="s5">)</span><span class="s1">strlen</span><span class="s5">(</span><span class="s1">name</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">len </span><span class="s5">&lt;= </span><span class="s6">0 </span><span class="s5">|| </span><span class="s1">len </span><span class="s5">&gt;= </span><span class="s1">NAME_LEN</span><span class="s5">) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s4">for </span><span class="s5">(</span><span class="s1">i </span><span class="s5">= </span><span class="s6">0</span><span class="s5">; </span><span class="s1">i </span><span class="s5">&lt; </span><span class="s1">len</span><span class="s5">; </span><span class="s1">i</span><span class="s5">++) {</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">isspace</span><span class="s5">((</span><span class="s4">unsigned char</span><span class="s5">)</span><span class="s1">name</span><span class="s5">[</span><span class="s1">i</span><span class="s5">])) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s4">return </span><span class="s6">1</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">calculateScore</span><span class="s5">(</span><span class="s1">Student </span><span class="s5">*</span><span class="s1">stu</span><span class="s5">) {</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">stu </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) </span><span class="s4">return</span><span class="s5">;</span>
+    <span class="s1">stu</span><span class="s5">-&gt;</span><span class="s1">total </span><span class="s5">= </span><span class="s1">stu</span><span class="s5">-&gt;</span><span class="s1">cScore </span><span class="s5">+ </span><span class="s1">stu</span><span class="s5">-&gt;</span><span class="s1">mathScore </span><span class="s5">+ </span><span class="s1">stu</span><span class="s5">-&gt;</span><span class="s1">englishScore</span><span class="s5">;</span>
+    <span class="s1">stu</span><span class="s5">-&gt;</span><span class="s1">average </span><span class="s5">= </span><span class="s1">stu</span><span class="s5">-&gt;</span><span class="s1">total </span><span class="s5">/ </span><span class="s6">3.0f</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s0">/* Let search and analysis code get different score fields through one function. */</span>
+<span class="s4">float </span><span class="s1">getStudentScore</span><span class="s5">(</span><span class="s1">Student stu</span><span class="s5">, </span><span class="s4">int </span><span class="s1">subject</span><span class="s5">) {</span>
+    <span class="s4">switch </span><span class="s5">(</span><span class="s1">subject</span><span class="s5">) {</span>
+        <span class="s4">case </span><span class="s1">SUBJECT_C: </span><span class="s4">return </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">cScore</span><span class="s5">;</span>
+        <span class="s4">case </span><span class="s1">SUBJECT_MATH: </span><span class="s4">return </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">mathScore</span><span class="s5">;</span>
+        <span class="s4">case </span><span class="s1">SUBJECT_ENGLISH: </span><span class="s4">return </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">englishScore</span><span class="s5">;</span>
+        <span class="s4">case </span><span class="s1">SUBJECT_TOTAL: </span><span class="s4">return </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">total</span><span class="s5">;</span>
+        <span class="s4">case </span><span class="s1">SUBJECT_AVERAGE: </span><span class="s4">return </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">average</span><span class="s5">;</span>
+        <span class="s4">default</span><span class="s1">: </span><span class="s4">return </span><span class="s6">0.0f</span><span class="s5">;</span>
+    <span class="s5">}</span>
+<span class="s5">}</span>
+<span class="s4">const char </span><span class="s5">*</span><span class="s1">getSubjectName</span><span class="s5">(</span><span class="s4">int </span><span class="s1">subject</span><span class="s5">) {</span>
+    <span class="s4">switch </span><span class="s5">(</span><span class="s1">subject</span><span class="s5">) {</span>
+        <span class="s4">case </span><span class="s1">SUBJECT_C: </span><span class="s4">return </span><span class="s3">&quot;C&quot;</span><span class="s5">;</span>
+        <span class="s4">case </span><span class="s1">SUBJECT_MATH: </span><span class="s4">return </span><span class="s3">&quot;Math&quot;</span><span class="s5">;</span>
+        <span class="s4">case </span><span class="s1">SUBJECT_ENGLISH: </span><span class="s4">return </span><span class="s3">&quot;English&quot;</span><span class="s5">;</span>
+        <span class="s4">case </span><span class="s1">SUBJECT_TOTAL: </span><span class="s4">return </span><span class="s3">&quot;Total&quot;</span><span class="s5">;</span>
+        <span class="s4">case </span><span class="s1">SUBJECT_AVERAGE: </span><span class="s4">return </span><span class="s3">&quot;Average&quot;</span><span class="s5">;</span>
+        <span class="s4">default</span><span class="s1">: </span><span class="s4">return </span><span class="s3">&quot;Unknown&quot;</span><span class="s5">;</span>
+    <span class="s5">}</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">inputScores</span><span class="s5">(</span><span class="s1">Student </span><span class="s5">*</span><span class="s1">stu</span><span class="s5">) {</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">stu </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) </span><span class="s4">return</span><span class="s5">;</span>
+    <span class="s1">stu</span><span class="s5">-&gt;</span><span class="s1">cScore </span><span class="s5">= </span><span class="s1">readScore</span><span class="s5">(</span><span class="s3">&quot;Input C score: &quot;</span><span class="s5">);</span>
+    <span class="s1">stu</span><span class="s5">-&gt;</span><span class="s1">mathScore </span><span class="s5">= </span><span class="s1">readScore</span><span class="s5">(</span><span class="s3">&quot;Input math score: &quot;</span><span class="s5">);</span>
+    <span class="s1">stu</span><span class="s5">-&gt;</span><span class="s1">englishScore </span><span class="s5">= </span><span class="s1">readScore</span><span class="s5">(</span><span class="s3">&quot;Input English score: &quot;</span><span class="s5">);</span>
+    <span class="s1">calculateScore</span><span class="s5">(</span><span class="s1">stu</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">copyStudent</span><span class="s5">(</span><span class="s1">Student </span><span class="s5">*</span><span class="s1">dest</span><span class="s5">, </span><span class="s1">Student src</span><span class="s5">) {</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">dest </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) *</span><span class="s1">dest </span><span class="s5">= </span><span class="s1">src</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s0">/* Read a complete student record and check duplicate student number if needed. */</span>
+<span class="s1">Student inputStudent</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">, </span><span class="s4">int </span><span class="s1">checkDuplicate</span><span class="s5">) {</span>
+    <span class="s1">Student stu</span><span class="s5">;</span>
+    <span class="s1">memset</span><span class="s5">(&amp;</span><span class="s1">stu</span><span class="s5">, </span><span class="s6">0</span><span class="s5">, </span><span class="s4">sizeof</span><span class="s5">(</span><span class="s1">Student</span><span class="s5">));</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s6">1</span><span class="s5">) {</span>
+        <span class="s1">readString</span><span class="s5">(</span><span class="s3">&quot;Input student number (4-19 digits): &quot;</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">num</span><span class="s5">, </span><span class="s1">NUM_LEN</span><span class="s5">);</span>
+        <span class="s4">if </span><span class="s5">(!</span><span class="s1">isNumFormatValid</span><span class="s5">(</span><span class="s1">stu</span><span class="s5">.</span><span class="s1">num</span><span class="s5">)) {</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Invalid number. It must contain 4 to 19 digits.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+        <span class="s5">} </span><span class="s4">else if </span><span class="s5">(</span><span class="s1">checkDuplicate </span><span class="s5">&amp;&amp; </span><span class="s1">isNumExist</span><span class="s5">(</span><span class="s1">head</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">num</span><span class="s5">)) {</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;This student number already exists.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+        <span class="s5">} </span><span class="s4">else </span><span class="s5">{</span>
+            <span class="s4">break</span><span class="s5">;</span>
+        <span class="s5">}</span>
+    <span class="s5">}</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s6">1</span><span class="s5">) {</span>
+        <span class="s1">readString</span><span class="s5">(</span><span class="s3">&quot;Input name (no spaces): &quot;</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">name</span><span class="s5">, </span><span class="s1">NAME_LEN</span><span class="s5">);</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">isNameFormatValid</span><span class="s5">(</span><span class="s1">stu</span><span class="s5">.</span><span class="s1">name</span><span class="s5">)) </span><span class="s4">break</span><span class="s5">;</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Invalid name. Please input again.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s5">}</span>
+    <span class="s1">inputScores</span><span class="s5">(&amp;</span><span class="s1">stu</span><span class="s5">);</span>
+    <span class="s4">return </span><span class="s1">stu</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">addStudent</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s1">Student stu</span><span class="s5">;</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;</span><span class="s4">\n</span><span class="s3">--- Add Student ---</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">stu </span><span class="s5">= </span><span class="s1">inputStudent</span><span class="s5">(</span><span class="s1">head</span><span class="s5">, </span><span class="s6">1</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">appendStudent</span><span class="s5">(</span><span class="s1">head</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">)) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Add success.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+        <span class="s1">printStudentHeader</span><span class="s5">();</span>
+        <span class="s1">printStudent</span><span class="s5">(</span><span class="s1">stu</span><span class="s5">);</span>
+    <span class="s5">} </span><span class="s4">else </span><span class="s5">{</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Add failed. Memory may be insufficient or number is duplicate.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s5">}</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">deleteByNumMenu</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s4">char </span><span class="s1">num</span><span class="s5">[</span><span class="s1">NUM_LEN</span><span class="s5">];</span>
+    <span class="s1">Student removed</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">isListEmpty</span><span class="s5">(</span><span class="s1">head</span><span class="s5">)) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;No student record.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+        <span class="s4">return</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">readString</span><span class="s5">(</span><span class="s3">&quot;Input number to delete: &quot;</span><span class="s5">, </span><span class="s1">num</span><span class="s5">, </span><span class="s1">NUM_LEN</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">removeByNum</span><span class="s5">(</span><span class="s1">head</span><span class="s5">, </span><span class="s1">num</span><span class="s5">, &amp;</span><span class="s1">removed</span><span class="s5">)) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Delete success. Deleted record:</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+        <span class="s1">printStudentHeader</span><span class="s5">();</span>
+        <span class="s1">printStudent</span><span class="s5">(</span><span class="s1">removed</span><span class="s5">);</span>
+    <span class="s5">} </span><span class="s4">else </span><span class="s5">{</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Number not found. Delete failed.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s5">}</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">deleteFailedStudents</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">prev</span><span class="s5">, *</span><span class="s1">target</span><span class="s5">;</span>
+    <span class="s4">int </span><span class="s1">count </span><span class="s5">= </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">isListEmpty</span><span class="s5">(</span><span class="s1">head</span><span class="s5">)) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;No student record.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+        <span class="s4">return</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;This will delete students who fail any subject.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(!</span><span class="s1">askYesNo</span><span class="s5">(</span><span class="s3">&quot;Confirm delete? (y/n): &quot;</span><span class="s5">)) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Batch delete canceled.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+        <span class="s4">return</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">prev </span><span class="s5">= </span><span class="s1">head</span><span class="s5">;</span>
+    <span class="s0">/* prev is not advanced when a node is deleted, because prev-&gt;next has changed. */</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">prev</span><span class="s5">-&gt;</span><span class="s1">next </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">target </span><span class="s5">= </span><span class="s1">prev</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">target</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">.</span><span class="s1">cScore </span><span class="s5">&lt; </span><span class="s1">PASS_SCORE </span><span class="s5">||</span>
+            <span class="s1">target</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">.</span><span class="s1">mathScore </span><span class="s5">&lt; </span><span class="s1">PASS_SCORE </span><span class="s5">||</span>
+            <span class="s1">target</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">.</span><span class="s1">englishScore </span><span class="s5">&lt; </span><span class="s1">PASS_SCORE</span><span class="s5">) {</span>
+            <span class="s1">prev</span><span class="s5">-&gt;</span><span class="s1">next </span><span class="s5">= </span><span class="s1">target</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+            <span class="s1">free</span><span class="s5">(</span><span class="s1">target</span><span class="s5">);</span>
+            <span class="s1">count</span><span class="s5">++;</span>
+        <span class="s5">} </span><span class="s4">else </span><span class="s5">{</span>
+            <span class="s1">prev </span><span class="s5">= </span><span class="s1">prev</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+        <span class="s5">}</span>
+    <span class="s5">}</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Deleted %d failed student records.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">count</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">deleteAllStudents</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s4">int </span><span class="s1">count</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">isListEmpty</span><span class="s5">(</span><span class="s1">head</span><span class="s5">)) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;No student record.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+        <span class="s4">return</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">count </span><span class="s5">= </span><span class="s1">getListLength</span><span class="s5">(</span><span class="s1">head</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;There are %d records.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">count</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(!</span><span class="s1">askYesNo</span><span class="s5">(</span><span class="s3">&quot;Clear all records? (y/n): &quot;</span><span class="s5">)) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Clear canceled.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+        <span class="s4">return</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">clearList</span><span class="s5">(</span><span class="s1">head</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;All records cleared.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">static void </span><span class="s1">showDeleteMenu</span><span class="s5">(</span><span class="s4">void</span><span class="s5">) {</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;</span><span class="s4">\n</span><span class="s3">--- Delete Student ---</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;1. Delete one student by number</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;2. Delete students who fail any subject</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;3. Clear all records</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;0. Return</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">deleteStudent</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s4">int </span><span class="s1">choice</span><span class="s5">, </span><span class="s1">running </span><span class="s5">= </span><span class="s6">1</span><span class="s5">;</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">running</span><span class="s5">) {</span>
+        <span class="s1">showDeleteMenu</span><span class="s5">();</span>
+        <span class="s1">choice </span><span class="s5">= </span><span class="s1">readInt</span><span class="s5">(</span><span class="s3">&quot;Choose: &quot;</span><span class="s5">, </span><span class="s6">0</span><span class="s5">, </span><span class="s6">3</span><span class="s5">);</span>
+        <span class="s4">switch </span><span class="s5">(</span><span class="s1">choice</span><span class="s5">) {</span>
+            <span class="s4">case </span><span class="s6">1</span><span class="s1">: deleteByNumMenu</span><span class="s5">(</span><span class="s1">head</span><span class="s5">); </span><span class="s4">break</span><span class="s5">;</span>
+            <span class="s4">case </span><span class="s6">2</span><span class="s1">: deleteFailedStudents</span><span class="s5">(</span><span class="s1">head</span><span class="s5">); </span><span class="s4">break</span><span class="s5">;</span>
+            <span class="s4">case </span><span class="s6">3</span><span class="s1">: deleteAllStudents</span><span class="s5">(</span><span class="s1">head</span><span class="s5">); </span><span class="s4">break</span><span class="s5">;</span>
+            <span class="s4">case </span><span class="s6">0</span><span class="s1">: running </span><span class="s5">= </span><span class="s6">0</span><span class="s5">; </span><span class="s4">break</span><span class="s5">;</span>
+            <span class="s4">default</span><span class="s1">: printf</span><span class="s5">(</span><span class="s3">&quot;Invalid choice.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">); </span><span class="s4">break</span><span class="s5">;</span>
+        <span class="s5">}</span>
+    <span class="s5">}</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">searchByNumMenu</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s4">char </span><span class="s1">num</span><span class="s5">[</span><span class="s1">NUM_LEN</span><span class="s5">];</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">p</span><span class="s5">;</span>
+    <span class="s1">readString</span><span class="s5">(</span><span class="s3">&quot;Input number: &quot;</span><span class="s5">, </span><span class="s1">num</span><span class="s5">, </span><span class="s1">NUM_LEN</span><span class="s5">);</span>
+    <span class="s1">p </span><span class="s5">= </span><span class="s1">findByNum</span><span class="s5">(</span><span class="s1">head</span><span class="s5">, </span><span class="s1">num</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">p </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Student not found.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s5">} </span><span class="s4">else </span><span class="s5">{</span>
+        <span class="s1">printStudentHeader</span><span class="s5">();</span>
+        <span class="s1">printStudent</span><span class="s5">(</span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">);</span>
+    <span class="s5">}</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">searchByNameMenu</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s4">char </span><span class="s1">name</span><span class="s5">[</span><span class="s1">NAME_LEN</span><span class="s5">];</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">p </span><span class="s5">= </span><span class="s1">head</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s4">int </span><span class="s1">found </span><span class="s5">= </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s1">readString</span><span class="s5">(</span><span class="s3">&quot;Input name: &quot;</span><span class="s5">, </span><span class="s1">name</span><span class="s5">, </span><span class="s1">NAME_LEN</span><span class="s5">);</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">p </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">strcmp</span><span class="s5">(</span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">.</span><span class="s1">name</span><span class="s5">, </span><span class="s1">name</span><span class="s5">) == </span><span class="s6">0</span><span class="s5">) {</span>
+            <span class="s4">if </span><span class="s5">(!</span><span class="s1">found</span><span class="s5">) </span><span class="s1">printStudentHeader</span><span class="s5">();</span>
+            <span class="s1">printStudent</span><span class="s5">(</span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">);</span>
+            <span class="s1">found </span><span class="s5">= </span><span class="s6">1</span><span class="s5">;</span>
+        <span class="s5">}</span>
+        <span class="s1">p </span><span class="s5">= </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s4">if </span><span class="s5">(!</span><span class="s1">found</span><span class="s5">) </span><span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;No student with this name.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">searchByFuzzyNameMenu</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s4">char </span><span class="s1">key</span><span class="s5">[</span><span class="s1">NAME_LEN</span><span class="s5">];</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">p </span><span class="s5">= </span><span class="s1">head</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s4">int </span><span class="s1">found </span><span class="s5">= </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s1">readString</span><span class="s5">(</span><span class="s3">&quot;Input name keyword: &quot;</span><span class="s5">, </span><span class="s1">key</span><span class="s5">, </span><span class="s1">NAME_LEN</span><span class="s5">);</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">p </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">strstr</span><span class="s5">(</span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">.</span><span class="s1">name</span><span class="s5">, </span><span class="s1">key</span><span class="s5">) != </span><span class="s1">NULL</span><span class="s5">) {</span>
+            <span class="s4">if </span><span class="s5">(!</span><span class="s1">found</span><span class="s5">) </span><span class="s1">printStudentHeader</span><span class="s5">();</span>
+            <span class="s1">printStudent</span><span class="s5">(</span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">);</span>
+            <span class="s1">found </span><span class="s5">= </span><span class="s6">1</span><span class="s5">;</span>
+        <span class="s5">}</span>
+        <span class="s1">p </span><span class="s5">= </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s4">if </span><span class="s5">(!</span><span class="s1">found</span><span class="s5">) </span><span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;No student name contains this keyword.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">searchByScoreRangeMenu</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s4">int </span><span class="s1">subject</span><span class="s5">, </span><span class="s1">found </span><span class="s5">= </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s4">float </span><span class="s1">low</span><span class="s5">, </span><span class="s1">high</span><span class="s5">, </span><span class="s1">score</span><span class="s5">;</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">p</span><span class="s5">;</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;1. C</span><span class="s4">\n</span><span class="s3">2. Math</span><span class="s4">\n</span><span class="s3">3. English</span><span class="s4">\n</span><span class="s3">4. Total</span><span class="s4">\n</span><span class="s3">5. Average</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">subject </span><span class="s5">= </span><span class="s1">readInt</span><span class="s5">(</span><span class="s3">&quot;Choose subject: &quot;</span><span class="s5">, </span><span class="s6">1</span><span class="s5">, </span><span class="s6">5</span><span class="s5">);</span>
+    <span class="s1">low </span><span class="s5">= </span><span class="s1">readFloat</span><span class="s5">(</span><span class="s3">&quot;Input low score: &quot;</span><span class="s5">, </span><span class="s6">0.0f</span><span class="s5">, </span><span class="s6">300.0f</span><span class="s5">);</span>
+    <span class="s1">high </span><span class="s5">= </span><span class="s1">readFloat</span><span class="s5">(</span><span class="s3">&quot;Input high score: &quot;</span><span class="s5">, </span><span class="s1">low</span><span class="s5">, </span><span class="s6">300.0f</span><span class="s5">);</span>
+    <span class="s1">p </span><span class="s5">= </span><span class="s1">head</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s0">/* Total score can reach 300, while each single subject is within 100. */</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">p </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">score </span><span class="s5">= </span><span class="s1">getStudentScore</span><span class="s5">(</span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">, </span><span class="s1">subject</span><span class="s5">);</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">score </span><span class="s5">&gt;= </span><span class="s1">low </span><span class="s5">&amp;&amp; </span><span class="s1">score </span><span class="s5">&lt;= </span><span class="s1">high</span><span class="s5">) {</span>
+            <span class="s4">if </span><span class="s5">(!</span><span class="s1">found</span><span class="s5">) {</span>
+                <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Subject: %s, range: %.2f - %.2f</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">,</span>
+                       <span class="s1">getSubjectName</span><span class="s5">(</span><span class="s1">subject</span><span class="s5">), </span><span class="s1">low</span><span class="s5">, </span><span class="s1">high</span><span class="s5">);</span>
+                <span class="s1">printStudentHeader</span><span class="s5">();</span>
+            <span class="s5">}</span>
+            <span class="s1">printStudent</span><span class="s5">(</span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">);</span>
+            <span class="s1">found </span><span class="s5">= </span><span class="s6">1</span><span class="s5">;</span>
+        <span class="s5">}</span>
+        <span class="s1">p </span><span class="s5">= </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s4">if </span><span class="s5">(!</span><span class="s1">found</span><span class="s5">) </span><span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;No student in this score range.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">searchFailedStudentsMenu</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">p </span><span class="s5">= </span><span class="s1">head</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s4">int </span><span class="s1">found </span><span class="s5">= </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">p </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">.</span><span class="s1">cScore </span><span class="s5">&lt; </span><span class="s1">PASS_SCORE </span><span class="s5">||</span>
+            <span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">.</span><span class="s1">mathScore </span><span class="s5">&lt; </span><span class="s1">PASS_SCORE </span><span class="s5">||</span>
+            <span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">.</span><span class="s1">englishScore </span><span class="s5">&lt; </span><span class="s1">PASS_SCORE</span><span class="s5">) {</span>
+            <span class="s4">if </span><span class="s5">(!</span><span class="s1">found</span><span class="s5">) {</span>
+                <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Students who fail at least one subject:</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+                <span class="s1">printStudentHeader</span><span class="s5">();</span>
+            <span class="s5">}</span>
+            <span class="s1">printStudent</span><span class="s5">(</span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">);</span>
+            <span class="s1">found </span><span class="s5">= </span><span class="s6">1</span><span class="s5">;</span>
+        <span class="s5">}</span>
+        <span class="s1">p </span><span class="s5">= </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s4">if </span><span class="s5">(!</span><span class="s1">found</span><span class="s5">) </span><span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;No failed student.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">searchExcellentStudentsMenu</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">p </span><span class="s5">= </span><span class="s1">head</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s4">int </span><span class="s1">found </span><span class="s5">= </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">p </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">.</span><span class="s1">average </span><span class="s5">&gt;= </span><span class="s1">EXCELLENT_SCORE</span><span class="s5">) {</span>
+            <span class="s4">if </span><span class="s5">(!</span><span class="s1">found</span><span class="s5">) {</span>
+                <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Excellent students by average score:</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+                <span class="s1">printStudentHeader</span><span class="s5">();</span>
+            <span class="s5">}</span>
+            <span class="s1">printStudent</span><span class="s5">(</span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">);</span>
+            <span class="s1">found </span><span class="s5">= </span><span class="s6">1</span><span class="s5">;</span>
+        <span class="s5">}</span>
+        <span class="s1">p </span><span class="s5">= </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s4">if </span><span class="s5">(!</span><span class="s1">found</span><span class="s5">) </span><span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;No excellent student by average score.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">static void </span><span class="s1">showSearchMenu</span><span class="s5">(</span><span class="s4">void</span><span class="s5">) {</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;</span><span class="s4">\n</span><span class="s3">--- Search Student ---</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;1. Search by number</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;2. Search by exact name</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;3. Search by fuzzy name</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;4. Search by score range</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;5. Search failed students</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;6. Search excellent students</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;0. Return</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">searchStudent</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s4">int </span><span class="s1">choice</span><span class="s5">, </span><span class="s1">running </span><span class="s5">= </span><span class="s6">1</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">isListEmpty</span><span class="s5">(</span><span class="s1">head</span><span class="s5">)) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;No student record.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+        <span class="s4">return</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">running</span><span class="s5">) {</span>
+        <span class="s1">showSearchMenu</span><span class="s5">();</span>
+        <span class="s1">choice </span><span class="s5">= </span><span class="s1">readInt</span><span class="s5">(</span><span class="s3">&quot;Choose: &quot;</span><span class="s5">, </span><span class="s6">0</span><span class="s5">, </span><span class="s6">6</span><span class="s5">);</span>
+        <span class="s4">switch </span><span class="s5">(</span><span class="s1">choice</span><span class="s5">) {</span>
+            <span class="s4">case </span><span class="s6">1</span><span class="s1">: searchByNumMenu</span><span class="s5">(</span><span class="s1">head</span><span class="s5">); </span><span class="s4">break</span><span class="s5">;</span>
+            <span class="s4">case </span><span class="s6">2</span><span class="s1">: searchByNameMenu</span><span class="s5">(</span><span class="s1">head</span><span class="s5">); </span><span class="s4">break</span><span class="s5">;</span>
+            <span class="s4">case </span><span class="s6">3</span><span class="s1">: searchByFuzzyNameMenu</span><span class="s5">(</span><span class="s1">head</span><span class="s5">); </span><span class="s4">break</span><span class="s5">;</span>
+            <span class="s4">case </span><span class="s6">4</span><span class="s1">: searchByScoreRangeMenu</span><span class="s5">(</span><span class="s1">head</span><span class="s5">); </span><span class="s4">break</span><span class="s5">;</span>
+            <span class="s4">case </span><span class="s6">5</span><span class="s1">: searchFailedStudentsMenu</span><span class="s5">(</span><span class="s1">head</span><span class="s5">); </span><span class="s4">break</span><span class="s5">;</span>
+            <span class="s4">case </span><span class="s6">6</span><span class="s1">: searchExcellentStudentsMenu</span><span class="s5">(</span><span class="s1">head</span><span class="s5">); </span><span class="s4">break</span><span class="s5">;</span>
+            <span class="s4">case </span><span class="s6">0</span><span class="s1">: running </span><span class="s5">= </span><span class="s6">0</span><span class="s5">; </span><span class="s4">break</span><span class="s5">;</span>
+            <span class="s4">default</span><span class="s1">: printf</span><span class="s5">(</span><span class="s3">&quot;Invalid choice.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">); </span><span class="s4">break</span><span class="s5">;</span>
+        <span class="s5">}</span>
+    <span class="s5">}</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">modifyStudent</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s4">char </span><span class="s1">num</span><span class="s5">[</span><span class="s1">NUM_LEN</span><span class="s5">];</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">p</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">isListEmpty</span><span class="s5">(</span><span class="s1">head</span><span class="s5">)) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;No student record.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+        <span class="s4">return</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;</span><span class="s4">\n</span><span class="s3">--- Modify Student ---</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">readString</span><span class="s5">(</span><span class="s3">&quot;Input number to modify: &quot;</span><span class="s5">, </span><span class="s1">num</span><span class="s5">, </span><span class="s1">NUM_LEN</span><span class="s5">);</span>
+    <span class="s1">p </span><span class="s5">= </span><span class="s1">findByNum</span><span class="s5">(</span><span class="s1">head</span><span class="s5">, </span><span class="s1">num</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">p </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Number not found.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+        <span class="s4">return</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Current record:</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printStudentHeader</span><span class="s5">();</span>
+    <span class="s1">printStudent</span><span class="s5">(</span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">);</span>
+    <span class="s0">/* The student number is not changed, because it is the key for searching. */</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s6">1</span><span class="s5">) {</span>
+        <span class="s1">readString</span><span class="s5">(</span><span class="s3">&quot;Input new name: &quot;</span><span class="s5">, </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">.</span><span class="s1">name</span><span class="s5">, </span><span class="s1">NAME_LEN</span><span class="s5">);</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">isNameFormatValid</span><span class="s5">(</span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">.</span><span class="s1">name</span><span class="s5">)) </span><span class="s4">break</span><span class="s5">;</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Invalid name. Please input again.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s5">}</span>
+    <span class="s1">inputScores</span><span class="s5">(&amp;</span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Modify success. New record:</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printStudentHeader</span><span class="s5">();</span>
+    <span class="s1">printStudent</span><span class="s5">(</span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">insertStudent</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s4">char </span><span class="s1">beforeNum</span><span class="s5">[</span><span class="s1">NUM_LEN</span><span class="s5">];</span>
+    <span class="s1">Student stu</span><span class="s5">;</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;</span><span class="s4">\n</span><span class="s3">--- Insert Student ---</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">isListEmpty</span><span class="s5">(</span><span class="s1">head</span><span class="s5">)) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;List is empty. The new record will be added as the first record.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+        <span class="s1">addStudent</span><span class="s5">(</span><span class="s1">head</span><span class="s5">);</span>
+        <span class="s4">return</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">readString</span><span class="s5">(</span><span class="s3">&quot;Input target number to insert before: &quot;</span><span class="s5">, </span><span class="s1">beforeNum</span><span class="s5">, </span><span class="s1">NUM_LEN</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">findByNum</span><span class="s5">(</span><span class="s1">head</span><span class="s5">, </span><span class="s1">beforeNum</span><span class="s5">) == </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Target number not found. Insert failed.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+        <span class="s4">return</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s0">/* Reuse inputStudent so inserted records follow the same validation rules. */</span>
+    <span class="s1">stu </span><span class="s5">= </span><span class="s1">inputStudent</span><span class="s5">(</span><span class="s1">head</span><span class="s5">, </span><span class="s6">1</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">insertBeforeNum</span><span class="s5">(</span><span class="s1">head</span><span class="s5">, </span><span class="s1">beforeNum</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">)) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Insert success.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s5">} </span><span class="s4">else </span><span class="s5">{</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Insert failed. Memory may be insufficient or number is duplicate.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s5">}</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">printStudentHeader</span><span class="s5">(</span><span class="s4">void</span><span class="s5">) {</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;%-15s %-15s %10s %10s %10s %10s %10s</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">,</span>
+           <span class="s3">&quot;Number&quot;</span><span class="s5">, </span><span class="s3">&quot;Name&quot;</span><span class="s5">, </span><span class="s3">&quot;C&quot;</span><span class="s5">, </span><span class="s3">&quot;Math&quot;</span><span class="s5">, </span><span class="s3">&quot;English&quot;</span><span class="s5">, </span><span class="s3">&quot;Total&quot;</span><span class="s5">, </span><span class="s3">&quot;Average&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;--------------------------------------------------------------------------------</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">printStudent</span><span class="s5">(</span><span class="s1">Student stu</span><span class="s5">) {</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;%-15s %-15s %10.2f %10.2f %10.2f %10.2f %10.2f</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">,</span>
+           <span class="s1">stu</span><span class="s5">.</span><span class="s1">num</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">name</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">cScore</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">mathScore</span><span class="s5">,</span>
+           <span class="s1">stu</span><span class="s5">.</span><span class="s1">englishScore</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">total</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">average</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">printStudentDetail</span><span class="s5">(</span><span class="s1">Student stu</span><span class="s5">) {</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Number: %s</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">num</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Name: %s</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">name</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;C score: %.2f</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">cScore</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Math score: %.2f</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">mathScore</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;English score: %.2f</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">englishScore</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Total: %.2f</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">total</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Average: %.2f</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">average</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">displayStudentDetail</span><span class="s5">(</span><span class="s1">Student stu</span><span class="s5">) {</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;</span><span class="s4">\n</span><span class="s3">--- Student Detail ---</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printStudentDetail</span><span class="s5">(</span><span class="s1">stu</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">displayAllStudents</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">p</span><span class="s5">;</span>
+    <span class="s4">int </span><span class="s1">count </span><span class="s5">= </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">isListEmpty</span><span class="s5">(</span><span class="s1">head</span><span class="s5">)) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;No student record.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+        <span class="s4">return</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;</span><span class="s4">\n</span><span class="s3">--- All Student Records ---</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printStudentHeader</span><span class="s5">();</span>
+    <span class="s1">p </span><span class="s5">= </span><span class="s1">head</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">p </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">printStudent</span><span class="s5">(</span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">);</span>
+        <span class="s1">count</span><span class="s5">++;</span>
+        <span class="s1">p </span><span class="s5">= </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Total records: %d</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">count</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">displaySimpleStudents</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">p </span><span class="s5">= </span><span class="s1">head </span><span class="s5">== </span><span class="s1">NULL ? NULL : head</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s4">int </span><span class="s1">index </span><span class="s5">= </span><span class="s6">1</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">p </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;No student record.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+        <span class="s4">return</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;%-6s %-15s %-15s</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s3">&quot;Index&quot;</span><span class="s5">, </span><span class="s3">&quot;Number&quot;</span><span class="s5">, </span><span class="s3">&quot;Name&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;----------------------------------------</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">p </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;%-6d %-15s %-15s</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">index</span><span class="s5">, </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">.</span><span class="s1">num</span><span class="s5">, </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">.</span><span class="s1">name</span><span class="s5">);</span>
+        <span class="s1">index</span><span class="s5">++;</span>
+        <span class="s1">p </span><span class="s5">= </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s5">}</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">initSampleData</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s1">Student samples</span><span class="s5">[] = {</span>
+        <span class="s5">{</span><span class="s3">&quot;2024001&quot;</span><span class="s5">, </span><span class="s3">&quot;ZhangSan&quot;</span><span class="s5">, </span><span class="s6">88</span><span class="s5">, </span><span class="s6">92</span><span class="s5">, </span><span class="s6">80</span><span class="s5">, </span><span class="s6">0</span><span class="s5">, </span><span class="s6">0</span><span class="s5">},</span>
+        <span class="s5">{</span><span class="s3">&quot;2024002&quot;</span><span class="s5">, </span><span class="s3">&quot;LiSi&quot;</span><span class="s5">, </span><span class="s6">76</span><span class="s5">, </span><span class="s6">85</span><span class="s5">, </span><span class="s6">90</span><span class="s5">, </span><span class="s6">0</span><span class="s5">, </span><span class="s6">0</span><span class="s5">},</span>
+        <span class="s5">{</span><span class="s3">&quot;2024003&quot;</span><span class="s5">, </span><span class="s3">&quot;WangWu&quot;</span><span class="s5">, </span><span class="s6">60</span><span class="s5">, </span><span class="s6">70</span><span class="s5">, </span><span class="s6">65</span><span class="s5">, </span><span class="s6">0</span><span class="s5">, </span><span class="s6">0</span><span class="s5">},</span>
+        <span class="s5">{</span><span class="s3">&quot;2024004&quot;</span><span class="s5">, </span><span class="s3">&quot;ZhaoLiu&quot;</span><span class="s5">, </span><span class="s6">95</span><span class="s5">, </span><span class="s6">91</span><span class="s5">, </span><span class="s6">94</span><span class="s5">, </span><span class="s6">0</span><span class="s5">, </span><span class="s6">0</span><span class="s5">},</span>
+        <span class="s5">{</span><span class="s3">&quot;2024005&quot;</span><span class="s5">, </span><span class="s3">&quot;QianQi&quot;</span><span class="s5">, </span><span class="s6">58</span><span class="s5">, </span><span class="s6">73</span><span class="s5">, </span><span class="s6">62</span><span class="s5">, </span><span class="s6">0</span><span class="s5">, </span><span class="s6">0</span><span class="s5">},</span>
+        <span class="s5">{</span><span class="s3">&quot;2024006&quot;</span><span class="s5">, </span><span class="s3">&quot;SunBa&quot;</span><span class="s5">, </span><span class="s6">82</span><span class="s5">, </span><span class="s6">79</span><span class="s5">, </span><span class="s6">88</span><span class="s5">, </span><span class="s6">0</span><span class="s5">, </span><span class="s6">0</span><span class="s5">},</span>
+        <span class="s5">{</span><span class="s3">&quot;2024007&quot;</span><span class="s5">, </span><span class="s3">&quot;ZhouJiu&quot;</span><span class="s5">, </span><span class="s6">67</span><span class="s5">, </span><span class="s6">55</span><span class="s5">, </span><span class="s6">72</span><span class="s5">, </span><span class="s6">0</span><span class="s5">, </span><span class="s6">0</span><span class="s5">},</span>
+        <span class="s5">{</span><span class="s3">&quot;2024008&quot;</span><span class="s5">, </span><span class="s3">&quot;WuShi&quot;</span><span class="s5">, </span><span class="s6">91</span><span class="s5">, </span><span class="s6">96</span><span class="s5">, </span><span class="s6">89</span><span class="s5">, </span><span class="s6">0</span><span class="s5">, </span><span class="s6">0</span><span class="s5">}</span>
+    <span class="s5">};</span>
+    <span class="s4">int </span><span class="s1">i</span><span class="s5">, </span><span class="s1">count </span><span class="s5">= (</span><span class="s4">int</span><span class="s5">)(</span><span class="s4">sizeof</span><span class="s5">(</span><span class="s1">samples</span><span class="s5">) / </span><span class="s4">sizeof</span><span class="s5">(</span><span class="s1">samples</span><span class="s5">[</span><span class="s6">0</span><span class="s5">]));</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Sample initialization will clear current list.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(!</span><span class="s1">askYesNo</span><span class="s5">(</span><span class="s3">&quot;Confirm initialization? (y/n): &quot;</span><span class="s5">)) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Initialization canceled.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+        <span class="s4">return</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s0">/* Sample data is useful for classroom demonstration and quick testing. */</span>
+    <span class="s1">clearList</span><span class="s5">(</span><span class="s1">head</span><span class="s5">);</span>
+    <span class="s4">for </span><span class="s5">(</span><span class="s1">i </span><span class="s5">= </span><span class="s6">0</span><span class="s5">; </span><span class="s1">i </span><span class="s5">&lt; </span><span class="s1">count</span><span class="s5">; </span><span class="s1">i</span><span class="s5">++) {</span>
+        <span class="s1">calculateScore</span><span class="s5">(&amp;</span><span class="s1">samples</span><span class="s5">[</span><span class="s1">i</span><span class="s5">]);</span>
+        <span class="s1">appendStudent</span><span class="s5">(</span><span class="s1">head</span><span class="s5">, </span><span class="s1">samples</span><span class="s5">[</span><span class="s1">i</span><span class="s5">]);</span>
+    <span class="s5">}</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Initialized %d sample records.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">count</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">showProjectHelp</span><span class="s5">(</span><span class="s4">void</span><span class="s5">) {</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;</span><span class="s4">\n</span><span class="s3">========== Project Help ==========</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;1. Standard C language is used. No database is used.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;2. A singly linked list stores student records in memory.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;3. The system loads data.txt automatically at startup.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;4. Add, delete, search, modify, insert and display are supported.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;5. Sorting supports total, average, single subject and number.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;6. Statistics support max, min, average, pass rate and excellent rate.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;7. File backup, report export and reload are supported.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;==================================</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">showMemberDivision</span><span class="s5">(</span><span class="s4">void</span><span class="s5">) {</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;</span><span class="s4">\n</span><span class="s3">========== Member Division ==========</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Member A: main.c, menu and process control.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Member B: student.c, linked list and student record management.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Member C: file.c and analysis.c, file storage, sorting and statistics.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;=====================================</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">showFileFormatHelp</span><span class="s5">(</span><span class="s4">void</span><span class="s5">) {</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;</span><span class="s4">\n</span><span class="s3">========== data.txt Format ==========</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;One student per line. Fields are separated by spaces.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Format: number name C_score math_score English_score</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Example: 2024001 ZhangSan 88 92 80</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Note: name should not contain spaces; score range is 0 to 100.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;=====================================</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+<span class="s5">}</span>
+</pre>
+</body>
+</html>

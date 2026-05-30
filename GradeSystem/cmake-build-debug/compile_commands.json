@@ -1,0 +1,26 @@
+[
+{
+  "directory": "C:/Users/28350/Documents/Codex/2026-05-30/c-1500-3-1-c-2/outputs/GradeSystem/cmake-build-debug",
+  "command": "D:\\mingw64\\bin\\cc.exe -g -std=gnu99 -fdiagnostics-color=always -finput-charset=UTF-8 -fexec-charset=GBK -o CMakeFiles\\GradeSystem.dir\\main.c.obj -c C:\\Users\\28350\\Documents\\Codex\\2026-05-30\\c-1500-3-1-c-2\\outputs\\GradeSystem\\main.c",
+  "file": "C:/Users/28350/Documents/Codex/2026-05-30/c-1500-3-1-c-2/outputs/GradeSystem/main.c",
+  "output": "C:/Users/28350/Documents/Codex/2026-05-30/c-1500-3-1-c-2/outputs/GradeSystem/cmake-build-debug/CMakeFiles/GradeSystem.dir/main.c.obj"
+},
+{
+  "directory": "C:/Users/28350/Documents/Codex/2026-05-30/c-1500-3-1-c-2/outputs/GradeSystem/cmake-build-debug",
+  "command": "D:\\mingw64\\bin\\cc.exe -g -std=gnu99 -fdiagnostics-color=always -finput-charset=UTF-8 -fexec-charset=GBK -o CMakeFiles\\GradeSystem.dir\\student.c.obj -c C:\\Users\\28350\\Documents\\Codex\\2026-05-30\\c-1500-3-1-c-2\\outputs\\GradeSystem\\student.c",
+  "file": "C:/Users/28350/Documents/Codex/2026-05-30/c-1500-3-1-c-2/outputs/GradeSystem/student.c",
+  "output": "C:/Users/28350/Documents/Codex/2026-05-30/c-1500-3-1-c-2/outputs/GradeSystem/cmake-build-debug/CMakeFiles/GradeSystem.dir/student.c.obj"
+},
+{
+  "directory": "C:/Users/28350/Documents/Codex/2026-05-30/c-1500-3-1-c-2/outputs/GradeSystem/cmake-build-debug",
+  "command": "D:\\mingw64\\bin\\cc.exe -g -std=gnu99 -fdiagnostics-color=always -finput-charset=UTF-8 -fexec-charset=GBK -o CMakeFiles\\GradeSystem.dir\\file.c.obj -c C:\\Users\\28350\\Documents\\Codex\\2026-05-30\\c-1500-3-1-c-2\\outputs\\GradeSystem\\file.c",
+  "file": "C:/Users/28350/Documents/Codex/2026-05-30/c-1500-3-1-c-2/outputs/GradeSystem/file.c",
+  "output": "C:/Users/28350/Documents/Codex/2026-05-30/c-1500-3-1-c-2/outputs/GradeSystem/cmake-build-debug/CMakeFiles/GradeSystem.dir/file.c.obj"
+},
+{
+  "directory": "C:/Users/28350/Documents/Codex/2026-05-30/c-1500-3-1-c-2/outputs/GradeSystem/cmake-build-debug",
+  "command": "D:\\mingw64\\bin\\cc.exe -g -std=gnu99 -fdiagnostics-color=always -finput-charset=UTF-8 -fexec-charset=GBK -o CMakeFiles\\GradeSystem.dir\\analysis.c.obj -c C:\\Users\\28350\\Documents\\Codex\\2026-05-30\\c-1500-3-1-c-2\\outputs\\GradeSystem\\analysis.c",
+  "file": "C:/Users/28350/Documents/Codex/2026-05-30/c-1500-3-1-c-2/outputs/GradeSystem/analysis.c",
+  "output": "C:/Users/28350/Documents/Codex/2026-05-30/c-1500-3-1-c-2/outputs/GradeSystem/cmake-build-debug/CMakeFiles/GradeSystem.dir/analysis.c.obj"
+}
+]

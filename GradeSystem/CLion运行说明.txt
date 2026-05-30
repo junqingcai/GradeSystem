@@ -1,0 +1,17 @@
+CLion 中文乱码处理说明
+
+1. 本项目源码文件使用 UTF-8 保存。
+2. Windows 下程序运行时会自动把控制台切换到 936(GBK)。
+3. CMakeLists.txt 已设置：
+   - MSVC: /source-charset:utf-8 /execution-charset:.936
+   - MinGW/GCC: -finput-charset=UTF-8 -fexec-charset=GBK
+
+如果 CLion 中仍然乱码，请按下面步骤操作：
+
+1. 关闭正在运行的程序。
+2. 删除项目目录下的 cmake-build-debug 文件夹。
+3. 在 CLion 中点击 File -> Reload CMake Project。
+4. 重新 Build，再 Run。
+
+如果仍然乱码，可以在 CLion 运行窗口执行前确认控制台为系统默认中文环境。
+Windows 中文系统通常使用 GBK/936，本项目已经按该环境处理。

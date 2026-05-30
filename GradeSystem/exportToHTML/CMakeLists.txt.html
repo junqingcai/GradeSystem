@@ -1,0 +1,55 @@
+<html>
+<head>
+<title>CMakeLists.txt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #ffc66d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #7a7e85;}
+.s4 { color: #cf8e6d;}
+.s5 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#191a1c">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+CMakeLists.txt</font>
+</center></td></tr></table>
+<pre><span class="s0">cmake_minimum_required</span><span class="s1">(VERSION 3.10)</span>
+
+<span class="s0">project</span><span class="s1">(GradeSystem C)</span>
+
+<span class="s0">set</span><span class="s1">(CMAKE_C_STANDARD 99)</span>
+<span class="s0">set</span><span class="s1">(CMAKE_C_STANDARD_REQUIRED ON)</span>
+
+<span class="s0">add_executable</span><span class="s1">(GradeSystem</span>
+        <span class="s1">main.c</span>
+        <span class="s1">student.c</span>
+        <span class="s1">file.c</span>
+        <span class="s1">analysis.c)</span>
+
+<span class="s3"># Source files are UTF-8. On Windows terminals, GBK output is usually safest.</span>
+<span class="s4">if </span><span class="s1">(MSVC)</span>
+    <span class="s0">target_compile_options</span><span class="s1">(GradeSystem PRIVATE</span>
+            <span class="s1">/source-charset:utf-8</span>
+            <span class="s1">/execution-charset:.936)</span>
+<span class="s4">elseif </span><span class="s1">(CMAKE_C_COMPILER_ID STREQUAL </span><span class="s5">&quot;</span><span class="s1">GNU</span><span class="s5">&quot;</span><span class="s1">)</span>
+    <span class="s4">if </span><span class="s1">(WIN32)</span>
+        <span class="s0">target_compile_options</span><span class="s1">(GradeSystem PRIVATE</span>
+                <span class="s1">-finput-charset=UTF-8</span>
+                <span class="s1">-fexec-charset=GBK)</span>
+    <span class="s4">else </span><span class="s1">()</span>
+        <span class="s0">target_compile_options</span><span class="s1">(GradeSystem PRIVATE</span>
+                <span class="s1">-finput-charset=UTF-8</span>
+                <span class="s1">-fexec-charset=UTF-8)</span>
+    <span class="s4">endif </span><span class="s1">()</span>
+<span class="s4">endif </span><span class="s1">()</span>
+
+<span class="s3"># Copy data.txt to CLion's build/run directory so the program can read it.</span>
+<span class="s0">configure_file</span><span class="s1">(</span><span class="s4">${</span><span class="s1">CMAKE_SOURCE_DIR</span><span class="s4">}</span><span class="s1">/data.txt</span>
+        <span class="s4">${</span><span class="s1">CMAKE_BINARY_DIR</span><span class="s4">}</span><span class="s1">/data.txt COPYONLY)</span>
+</pre>
+</body>
+</html>

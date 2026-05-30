@@ -1,0 +1,218 @@
+<html>
+<head>
+<title>file.c</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #7a7e85;}
+.s1 { color: #bcbec4;}
+.s2 { color: #b3ae60;}
+.s3 { color: #6aab73;}
+.s4 { color: #cf8e6d;}
+.s5 { color: #bcbec4;}
+.s6 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#191a1c">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+file.c</font>
+</center></td></tr></table>
+<pre><span class="s0">/* 
+ * Member C responsibility: 
+ * Read records from data.txt, save records, backup data and export report. 
+ */</span>
+<span class="s2">#include </span><span class="s3">&lt;stdio.h&gt;</span>
+<span class="s2">#include </span><span class="s3">&lt;stdlib.h&gt;</span>
+<span class="s2">#include </span><span class="s3">&lt;string.h&gt;</span>
+<span class="s2">#include </span><span class="s3">&quot;student.h&quot;</span>
+<span class="s0">/* Check whether the data file already exists before backup or loading. */</span>
+<span class="s4">int </span><span class="s1">fileExists</span><span class="s5">(</span><span class="s4">const char </span><span class="s5">*</span><span class="s1">filename</span><span class="s5">) {</span>
+    <span class="s1">FILE </span><span class="s5">*</span><span class="s1">fp </span><span class="s5">= </span><span class="s1">fopen</span><span class="s5">(</span><span class="s1">filename</span><span class="s5">, </span><span class="s3">&quot;r&quot;</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">fp </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s1">fclose</span><span class="s5">(</span><span class="s1">fp</span><span class="s5">);</span>
+    <span class="s4">return </span><span class="s6">1</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s0">/* Create an empty data file when data.txt does not exist at first run. */</span>
+<span class="s4">int </span><span class="s1">createEmptyDataFile</span><span class="s5">(</span><span class="s4">const char </span><span class="s5">*</span><span class="s1">filename</span><span class="s5">) {</span>
+    <span class="s1">FILE </span><span class="s5">*</span><span class="s1">fp </span><span class="s5">= </span><span class="s1">fopen</span><span class="s5">(</span><span class="s1">filename</span><span class="s5">, </span><span class="s3">&quot;a&quot;</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">fp </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Cannot create file %s.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">filename</span><span class="s5">);</span>
+        <span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">fclose</span><span class="s5">(</span><span class="s1">fp</span><span class="s5">);</span>
+    <span class="s4">return </span><span class="s6">1</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s0">/* Convert one text line into a Student structure and validate all fields. */</span>
+<span class="s4">static int </span><span class="s1">parseStudentLine</span><span class="s5">(</span><span class="s4">const char </span><span class="s5">*</span><span class="s1">line</span><span class="s5">, </span><span class="s1">Student </span><span class="s5">*</span><span class="s1">stu</span><span class="s5">) {</span>
+    <span class="s4">char </span><span class="s1">extra</span><span class="s5">[</span><span class="s1">LINE_LEN</span><span class="s5">];</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">line </span><span class="s5">== </span><span class="s1">NULL </span><span class="s5">|| </span><span class="s1">stu </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s1">memset</span><span class="s5">(</span><span class="s1">stu</span><span class="s5">, </span><span class="s6">0</span><span class="s5">, </span><span class="s4">sizeof</span><span class="s5">(</span><span class="s1">Student</span><span class="s5">));</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">sscanf</span><span class="s5">(</span><span class="s1">line</span><span class="s5">, </span><span class="s3">&quot;%19s %19s %f %f %f %255s&quot;</span><span class="s5">,</span>
+               <span class="s1">stu</span><span class="s5">-&gt;</span><span class="s1">num</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">-&gt;</span><span class="s1">name</span><span class="s5">,</span>
+               <span class="s5">&amp;</span><span class="s1">stu</span><span class="s5">-&gt;</span><span class="s1">cScore</span><span class="s5">, &amp;</span><span class="s1">stu</span><span class="s5">-&gt;</span><span class="s1">mathScore</span><span class="s5">, &amp;</span><span class="s1">stu</span><span class="s5">-&gt;</span><span class="s1">englishScore</span><span class="s5">,</span>
+               <span class="s1">extra</span><span class="s5">) != </span><span class="s6">5</span><span class="s5">) {</span>
+        <span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s4">if </span><span class="s5">(!</span><span class="s1">isNumFormatValid</span><span class="s5">(</span><span class="s1">stu</span><span class="s5">-&gt;</span><span class="s1">num</span><span class="s5">) || !</span><span class="s1">isNameFormatValid</span><span class="s5">(</span><span class="s1">stu</span><span class="s5">-&gt;</span><span class="s1">name</span><span class="s5">)) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(!</span><span class="s1">isScoreValid</span><span class="s5">(</span><span class="s1">stu</span><span class="s5">-&gt;</span><span class="s1">cScore</span><span class="s5">) ||</span>
+        <span class="s5">!</span><span class="s1">isScoreValid</span><span class="s5">(</span><span class="s1">stu</span><span class="s5">-&gt;</span><span class="s1">mathScore</span><span class="s5">) ||</span>
+        <span class="s5">!</span><span class="s1">isScoreValid</span><span class="s5">(</span><span class="s1">stu</span><span class="s5">-&gt;</span><span class="s1">englishScore</span><span class="s5">)) {</span>
+        <span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">calculateScore</span><span class="s5">(</span><span class="s1">stu</span><span class="s5">);</span>
+    <span class="s4">return </span><span class="s6">1</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s4">int </span><span class="s1">loadFromFile</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">, </span><span class="s4">const char </span><span class="s5">*</span><span class="s1">filename</span><span class="s5">) {</span>
+    <span class="s1">FILE </span><span class="s5">*</span><span class="s1">fp</span><span class="s5">;</span>
+    <span class="s4">char </span><span class="s1">line</span><span class="s5">[</span><span class="s1">LINE_LEN</span><span class="s5">];</span>
+    <span class="s1">Student stu</span><span class="s5">;</span>
+    <span class="s4">int </span><span class="s1">count </span><span class="s5">= </span><span class="s6">0</span><span class="s5">, </span><span class="s1">lineNumber </span><span class="s5">= </span><span class="s6">0</span><span class="s5">, </span><span class="s1">badCount </span><span class="s5">= </span><span class="s6">0</span><span class="s5">, </span><span class="s1">duplicateCount </span><span class="s5">= </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">head </span><span class="s5">== </span><span class="s1">NULL </span><span class="s5">|| </span><span class="s1">filename </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s1">fp </span><span class="s5">= </span><span class="s1">fopen</span><span class="s5">(</span><span class="s1">filename</span><span class="s5">, </span><span class="s3">&quot;r&quot;</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">fp </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;%s not found. Creating an empty data file.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">filename</span><span class="s5">);</span>
+        <span class="s1">createEmptyDataFile</span><span class="s5">(</span><span class="s1">filename</span><span class="s5">);</span>
+        <span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s0">/* Reloading should replace old memory data, so clear the list first. */</span>
+    <span class="s1">clearList</span><span class="s5">(</span><span class="s1">head</span><span class="s5">);</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">fgets</span><span class="s5">(</span><span class="s1">line</span><span class="s5">, </span><span class="s4">sizeof</span><span class="s5">(</span><span class="s1">line</span><span class="s5">), </span><span class="s1">fp</span><span class="s5">) != </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">lineNumber</span><span class="s5">++;</span>
+        <span class="s4">if </span><span class="s5">(</span><span class="s1">line</span><span class="s5">[</span><span class="s6">0</span><span class="s5">] == </span><span class="s3">'</span><span class="s4">\n</span><span class="s3">' </span><span class="s5">|| </span><span class="s1">line</span><span class="s5">[</span><span class="s6">0</span><span class="s5">] == </span><span class="s3">'</span><span class="s4">\0</span><span class="s3">'</span><span class="s5">) </span><span class="s4">continue</span><span class="s5">;</span>
+        <span class="s4">if </span><span class="s5">(!</span><span class="s1">parseStudentLine</span><span class="s5">(</span><span class="s1">line</span><span class="s5">, &amp;</span><span class="s1">stu</span><span class="s5">)) {</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Line %d has invalid format and is skipped.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">lineNumber</span><span class="s5">);</span>
+            <span class="s1">badCount</span><span class="s5">++;</span>
+            <span class="s4">continue</span><span class="s5">;</span>
+        <span class="s5">}</span>
+        <span class="s4">if </span><span class="s5">(!</span><span class="s1">appendStudent</span><span class="s5">(</span><span class="s1">head</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">)) {</span>
+            <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Line %d is duplicate or cannot be loaded.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">lineNumber</span><span class="s5">);</span>
+            <span class="s1">duplicateCount</span><span class="s5">++;</span>
+            <span class="s4">continue</span><span class="s5">;</span>
+        <span class="s5">}</span>
+        <span class="s1">count</span><span class="s5">++;</span>
+    <span class="s5">}</span>
+    <span class="s1">fclose</span><span class="s5">(</span><span class="s1">fp</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Loaded %d records. Invalid: %d, duplicate: %d.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">,</span>
+           <span class="s1">count</span><span class="s5">, </span><span class="s1">badCount</span><span class="s5">, </span><span class="s1">duplicateCount</span><span class="s5">);</span>
+    <span class="s4">return </span><span class="s1">count</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s4">int </span><span class="s1">backupDataFile</span><span class="s5">(</span><span class="s4">const char </span><span class="s5">*</span><span class="s1">sourceName</span><span class="s5">, </span><span class="s4">const char </span><span class="s5">*</span><span class="s1">backupName</span><span class="s5">) {</span>
+    <span class="s1">FILE </span><span class="s5">*</span><span class="s1">src</span><span class="s5">, *</span><span class="s1">dst</span><span class="s5">;</span>
+    <span class="s4">int </span><span class="s1">ch</span><span class="s5">, </span><span class="s1">count </span><span class="s5">= </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">sourceName </span><span class="s5">== </span><span class="s1">NULL </span><span class="s5">|| </span><span class="s1">backupName </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s1">src </span><span class="s5">= </span><span class="s1">fopen</span><span class="s5">(</span><span class="s1">sourceName</span><span class="s5">, </span><span class="s3">&quot;r&quot;</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">src </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Source file %s does not exist. Backup failed.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">sourceName</span><span class="s5">);</span>
+        <span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">dst </span><span class="s5">= </span><span class="s1">fopen</span><span class="s5">(</span><span class="s1">backupName</span><span class="s5">, </span><span class="s3">&quot;w&quot;</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">dst </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">fclose</span><span class="s5">(</span><span class="s1">src</span><span class="s5">);</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Cannot create backup file %s.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">backupName</span><span class="s5">);</span>
+        <span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s0">/* Character-by-character copy is simple and suitable for freshman C. */</span>
+    <span class="s4">while </span><span class="s5">((</span><span class="s1">ch </span><span class="s5">= </span><span class="s1">fgetc</span><span class="s5">(</span><span class="s1">src</span><span class="s5">)) != </span><span class="s1">EOF</span><span class="s5">) {</span>
+        <span class="s1">fputc</span><span class="s5">(</span><span class="s1">ch</span><span class="s5">, </span><span class="s1">dst</span><span class="s5">);</span>
+        <span class="s1">count</span><span class="s5">++;</span>
+    <span class="s5">}</span>
+    <span class="s1">fclose</span><span class="s5">(</span><span class="s1">src</span><span class="s5">);</span>
+    <span class="s1">fclose</span><span class="s5">(</span><span class="s1">dst</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Backed up %d characters to %s.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">count</span><span class="s5">, </span><span class="s1">backupName</span><span class="s5">);</span>
+    <span class="s4">return </span><span class="s6">1</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s4">int </span><span class="s1">saveToFile</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">, </span><span class="s4">const char </span><span class="s5">*</span><span class="s1">filename</span><span class="s5">) {</span>
+    <span class="s1">FILE </span><span class="s5">*</span><span class="s1">fp</span><span class="s5">;</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">p</span><span class="s5">;</span>
+    <span class="s4">int </span><span class="s1">count </span><span class="s5">= </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">head </span><span class="s5">== </span><span class="s1">NULL </span><span class="s5">|| </span><span class="s1">filename </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s0">/* Backup old data before overwriting data.txt. */</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">fileExists</span><span class="s5">(</span><span class="s1">filename</span><span class="s5">)) </span><span class="s1">backupDataFile</span><span class="s5">(</span><span class="s1">filename</span><span class="s5">, </span><span class="s1">BACKUP_FILE</span><span class="s5">);</span>
+    <span class="s1">fp </span><span class="s5">= </span><span class="s1">fopen</span><span class="s5">(</span><span class="s1">filename</span><span class="s5">, </span><span class="s3">&quot;w&quot;</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">fp </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Cannot open %s. Save failed.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">filename</span><span class="s5">);</span>
+        <span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">p </span><span class="s5">= </span><span class="s1">head</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s0">/* Only basic fields are saved; total and average are recalculated after loading. */</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">p </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">fprintf</span><span class="s5">(</span><span class="s1">fp</span><span class="s5">, </span><span class="s3">&quot;%s %s %.2f %.2f %.2f</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">,</span>
+                <span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">.</span><span class="s1">num</span><span class="s5">, </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">.</span><span class="s1">name</span><span class="s5">,</span>
+                <span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">.</span><span class="s1">cScore</span><span class="s5">, </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">.</span><span class="s1">mathScore</span><span class="s5">,</span>
+                <span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">.</span><span class="s1">englishScore</span><span class="s5">);</span>
+        <span class="s1">count</span><span class="s5">++;</span>
+        <span class="s1">p </span><span class="s5">= </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">fclose</span><span class="s5">(</span><span class="s1">fp</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Saved %d records to %s.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">count</span><span class="s5">, </span><span class="s1">filename</span><span class="s5">);</span>
+    <span class="s4">return </span><span class="s1">count</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s4">static void </span><span class="s1">writeReportHeader</span><span class="s5">(</span><span class="s1">FILE </span><span class="s5">*</span><span class="s1">fp</span><span class="s5">) {</span>
+    <span class="s1">fprintf</span><span class="s5">(</span><span class="s1">fp</span><span class="s5">, </span><span class="s3">&quot;Student Grade Management System Report</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">fprintf</span><span class="s5">(</span><span class="s1">fp</span><span class="s5">, </span><span class="s3">&quot;========================================</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">fprintf</span><span class="s5">(</span><span class="s1">fp</span><span class="s5">, </span><span class="s3">&quot;%-15s %-15s %10s %10s %10s %10s %10s</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">,</span>
+            <span class="s3">&quot;Num&quot;</span><span class="s5">, </span><span class="s3">&quot;Name&quot;</span><span class="s5">, </span><span class="s3">&quot;C&quot;</span><span class="s5">, </span><span class="s3">&quot;Math&quot;</span><span class="s5">, </span><span class="s3">&quot;English&quot;</span><span class="s5">, </span><span class="s3">&quot;Total&quot;</span><span class="s5">, </span><span class="s3">&quot;Average&quot;</span><span class="s5">);</span>
+    <span class="s1">fprintf</span><span class="s5">(</span><span class="s1">fp</span><span class="s5">, </span><span class="s3">&quot;--------------------------------------------------------------------------------</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">static void </span><span class="s1">writeReportStudent</span><span class="s5">(</span><span class="s1">FILE </span><span class="s5">*</span><span class="s1">fp</span><span class="s5">, </span><span class="s1">Student stu</span><span class="s5">) {</span>
+    <span class="s1">fprintf</span><span class="s5">(</span><span class="s1">fp</span><span class="s5">, </span><span class="s3">&quot;%-15s %-15s %10.2f %10.2f %10.2f %10.2f %10.2f</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">,</span>
+            <span class="s1">stu</span><span class="s5">.</span><span class="s1">num</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">name</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">cScore</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">mathScore</span><span class="s5">,</span>
+            <span class="s1">stu</span><span class="s5">.</span><span class="s1">englishScore</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">total</span><span class="s5">, </span><span class="s1">stu</span><span class="s5">.</span><span class="s1">average</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">int </span><span class="s1">exportReport</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">, </span><span class="s4">const char </span><span class="s5">*</span><span class="s1">filename</span><span class="s5">) {</span>
+    <span class="s1">FILE </span><span class="s5">*</span><span class="s1">fp</span><span class="s5">;</span>
+    <span class="s1">Node </span><span class="s5">*</span><span class="s1">p</span><span class="s5">;</span>
+    <span class="s4">int </span><span class="s1">count </span><span class="s5">= </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">head </span><span class="s5">== </span><span class="s1">NULL </span><span class="s5">|| </span><span class="s1">filename </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) </span><span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s1">fp </span><span class="s5">= </span><span class="s1">fopen</span><span class="s5">(</span><span class="s1">filename</span><span class="s5">, </span><span class="s3">&quot;w&quot;</span><span class="s5">);</span>
+    <span class="s4">if </span><span class="s5">(</span><span class="s1">fp </span><span class="s5">== </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Cannot create export file %s.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">filename</span><span class="s5">);</span>
+        <span class="s4">return </span><span class="s6">0</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">writeReportHeader</span><span class="s5">(</span><span class="s1">fp</span><span class="s5">);</span>
+    <span class="s1">p </span><span class="s5">= </span><span class="s1">head</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">p </span><span class="s5">!= </span><span class="s1">NULL</span><span class="s5">) {</span>
+        <span class="s1">writeReportStudent</span><span class="s5">(</span><span class="s1">fp</span><span class="s5">, </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">data</span><span class="s5">);</span>
+        <span class="s1">count</span><span class="s5">++;</span>
+        <span class="s1">p </span><span class="s5">= </span><span class="s1">p</span><span class="s5">-&gt;</span><span class="s1">next</span><span class="s5">;</span>
+    <span class="s5">}</span>
+    <span class="s1">fprintf</span><span class="s5">(</span><span class="s1">fp</span><span class="s5">, </span><span class="s3">&quot;--------------------------------------------------------------------------------</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">fprintf</span><span class="s5">(</span><span class="s1">fp</span><span class="s5">, </span><span class="s3">&quot;Total records: %d</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">count</span><span class="s5">);</span>
+    <span class="s1">fclose</span><span class="s5">(</span><span class="s1">fp</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;Exported %d records to %s.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">, </span><span class="s1">count</span><span class="s5">, </span><span class="s1">filename</span><span class="s5">);</span>
+    <span class="s4">return </span><span class="s1">count</span><span class="s5">;</span>
+<span class="s5">}</span>
+<span class="s4">static void </span><span class="s1">showFileMenu</span><span class="s5">(</span><span class="s4">void</span><span class="s5">) {</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;</span><span class="s4">\n</span><span class="s3">--- File Management ---</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;1. Save to data.txt</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;2. Reload from data.txt</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;3. Backup data.txt to backup.txt</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;4. Export report to export.txt</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;5. Show file format help</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+    <span class="s1">printf</span><span class="s5">(</span><span class="s3">&quot;0. Return</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">);</span>
+<span class="s5">}</span>
+<span class="s4">void </span><span class="s1">fileMenu</span><span class="s5">(</span><span class="s1">Node </span><span class="s5">*</span><span class="s1">head</span><span class="s5">) {</span>
+    <span class="s4">int </span><span class="s1">choice</span><span class="s5">;</span>
+    <span class="s4">int </span><span class="s1">running </span><span class="s5">= </span><span class="s6">1</span><span class="s5">;</span>
+    <span class="s4">while </span><span class="s5">(</span><span class="s1">running</span><span class="s5">) {</span>
+        <span class="s1">showFileMenu</span><span class="s5">();</span>
+        <span class="s1">choice </span><span class="s5">= </span><span class="s1">readInt</span><span class="s5">(</span><span class="s3">&quot;Choose: &quot;</span><span class="s5">, </span><span class="s6">0</span><span class="s5">, </span><span class="s6">5</span><span class="s5">);</span>
+        <span class="s4">switch </span><span class="s5">(</span><span class="s1">choice</span><span class="s5">) {</span>
+            <span class="s4">case </span><span class="s6">1</span><span class="s1">: saveToFile</span><span class="s5">(</span><span class="s1">head</span><span class="s5">, </span><span class="s1">DATA_FILE</span><span class="s5">); </span><span class="s4">break</span><span class="s5">;</span>
+            <span class="s4">case </span><span class="s6">2</span><span class="s1">:</span>
+                <span class="s4">if </span><span class="s5">(</span><span class="s1">askYesNo</span><span class="s5">(</span><span class="s3">&quot;Reload will overwrite unsaved memory data. Continue? (y/n): &quot;</span><span class="s5">)) {</span>
+                    <span class="s1">loadFromFile</span><span class="s5">(</span><span class="s1">head</span><span class="s5">, </span><span class="s1">DATA_FILE</span><span class="s5">);</span>
+                <span class="s5">}</span>
+                <span class="s4">break</span><span class="s5">;</span>
+            <span class="s4">case </span><span class="s6">3</span><span class="s1">: backupDataFile</span><span class="s5">(</span><span class="s1">DATA_FILE</span><span class="s5">, </span><span class="s1">BACKUP_FILE</span><span class="s5">); </span><span class="s4">break</span><span class="s5">;</span>
+            <span class="s4">case </span><span class="s6">4</span><span class="s1">: exportReport</span><span class="s5">(</span><span class="s1">head</span><span class="s5">, </span><span class="s1">EXPORT_FILE</span><span class="s5">); </span><span class="s4">break</span><span class="s5">;</span>
+            <span class="s4">case </span><span class="s6">5</span><span class="s1">: showFileFormatHelp</span><span class="s5">(); </span><span class="s4">break</span><span class="s5">;</span>
+            <span class="s4">case </span><span class="s6">0</span><span class="s1">: running </span><span class="s5">= </span><span class="s6">0</span><span class="s5">; </span><span class="s4">break</span><span class="s5">;</span>
+            <span class="s4">default</span><span class="s1">: printf</span><span class="s5">(</span><span class="s3">&quot;Invalid choice.</span><span class="s4">\n</span><span class="s3">&quot;</span><span class="s5">); </span><span class="s4">break</span><span class="s5">;</span>
+        <span class="s5">}</span>
+    <span class="s5">}</span>
+<span class="s5">}</span>
+</pre>
+</body>
+</html>

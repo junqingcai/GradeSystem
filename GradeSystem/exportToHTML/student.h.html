@@ -1,0 +1,189 @@
+<html>
+<head>
+<title>student.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #7a7e85;}
+.s1 { color: #bcbec4;}
+.s2 { color: #b3ae60;}
+.s3 { color: #6aab73;}
+.s4 { color: #2aacb8;}
+.s5 { color: #cf8e6d;}
+.s6 { color: #bcbec4;}
+</style>
+</head>
+<body bgcolor="#191a1c">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+student.h</font>
+</center></td></tr></table>
+<pre><span class="s0">/* 
+ * Student Grade Management System 
+ * Course Design Source File 
+ * 
+ * Project division for three students: 
+ * Member A: 
+ *     main.c 
+ *     Main function, main menu, second-level menus, help page, 
+ *     member division display and whole process control. 
+ * 
+ * Member B: 
+ *     student.c 
+ *     Linked-list creation, addition, deletion, search, modification, 
+ *     insertion, display, input validation and common list tools. 
+ * 
+ * Member C: 
+ *     file.c and analysis.c 
+ *     Data file reading, saving, backup, export, grade sorting, 
+ *     grade statistics and score distribution analysis. 
+ * 
+ * Data storage: 
+ *     The system uses a singly linked list in memory. 
+ *     The system uses data.txt as the persistent data file. 
+ * 
+ * Data format in data.txt: 
+ *     studentNumber studentName cScore mathScore englishScore 
+ * 
+ * Example: 
+ *     2024001 ZhangSan 88 92 80 
+ */</span>
+<span class="s2">#ifndef </span><span class="s1">STUDENT_H</span>
+<span class="s2">#define </span><span class="s1">STUDENT_H</span>
+<span class="s2">#include </span><span class="s3">&lt;stdio.h&gt;</span>
+<span class="s0">/* Basic length limits. One extra byte is reserved for '\0'. */</span>
+<span class="s2">#define </span><span class="s1">NUM_LEN </span><span class="s4">20</span>
+<span class="s2">#define </span><span class="s1">NAME_LEN </span><span class="s4">20</span>
+<span class="s2">#define </span><span class="s1">LINE_LEN </span><span class="s4">256</span>
+<span class="s0">/* File names used by the file management module. */</span>
+<span class="s2">#define </span><span class="s1">DATA_FILE </span><span class="s3">&quot;data.txt&quot;</span>
+<span class="s2">#define </span><span class="s1">BACKUP_FILE </span><span class="s3">&quot;backup.txt&quot;</span>
+<span class="s2">#define </span><span class="s1">EXPORT_FILE </span><span class="s3">&quot;export.txt&quot;</span>
+<span class="s0">/* Grade standards used by query and statistics functions. */</span>
+<span class="s2">#define </span><span class="s1">PASS_SCORE </span><span class="s4">60.0f</span>
+<span class="s2">#define </span><span class="s1">EXCELLENT_SCORE </span><span class="s4">90.0f</span>
+<span class="s0">/* Subject codes are used when one function needs to handle several scores. */</span>
+<span class="s2">#define </span><span class="s1">SUBJECT_C </span><span class="s4">1</span>
+<span class="s2">#define </span><span class="s1">SUBJECT_MATH </span><span class="s4">2</span>
+<span class="s2">#define </span><span class="s1">SUBJECT_ENGLISH </span><span class="s4">3</span>
+<span class="s2">#define </span><span class="s1">SUBJECT_TOTAL </span><span class="s4">4</span>
+<span class="s2">#define </span><span class="s1">SUBJECT_AVERAGE </span><span class="s4">5</span>
+<span class="s0">/* One student's complete score information. */</span>
+<span class="s5">typedef struct </span><span class="s1">Student </span><span class="s6">{</span>
+    <span class="s5">char </span><span class="s1">num</span><span class="s6">[</span><span class="s1">NUM_LEN</span><span class="s6">];</span>
+    <span class="s5">char </span><span class="s1">name</span><span class="s6">[</span><span class="s1">NAME_LEN</span><span class="s6">];</span>
+    <span class="s5">float </span><span class="s1">cScore</span><span class="s6">;</span>
+    <span class="s5">float </span><span class="s1">mathScore</span><span class="s6">;</span>
+    <span class="s5">float </span><span class="s1">englishScore</span><span class="s6">;</span>
+    <span class="s5">float </span><span class="s1">total</span><span class="s6">;</span>
+    <span class="s5">float </span><span class="s1">average</span><span class="s6">;</span>
+<span class="s6">} </span><span class="s1">Student</span><span class="s6">;</span>
+<span class="s0">/* Singly linked-list node. The program uses an extra head node. */</span>
+<span class="s5">typedef struct </span><span class="s1">Node </span><span class="s6">{</span>
+    <span class="s1">Student data</span><span class="s6">;</span>
+    <span class="s5">struct </span><span class="s1">Node </span><span class="s6">*</span><span class="s1">next</span><span class="s6">;</span>
+<span class="s6">} </span><span class="s1">Node</span><span class="s6">;</span>
+<span class="s0">/* Sorting choices used by analysis.c. */</span>
+<span class="s5">typedef enum </span><span class="s1">SortType </span><span class="s6">{</span>
+    <span class="s1">SORT_BY_TOTAL_DESC </span><span class="s6">= </span><span class="s4">1</span><span class="s6">,</span>
+    <span class="s1">SORT_BY_AVERAGE_DESC</span><span class="s6">,</span>
+    <span class="s1">SORT_BY_C_DESC</span><span class="s6">,</span>
+    <span class="s1">SORT_BY_MATH_DESC</span><span class="s6">,</span>
+    <span class="s1">SORT_BY_ENGLISH_DESC</span><span class="s6">,</span>
+    <span class="s1">SORT_BY_NUM_ASC</span><span class="s6">,</span>
+    <span class="s1">SORT_BY_C_ASC</span><span class="s6">,</span>
+    <span class="s1">SORT_BY_MATH_ASC</span><span class="s6">,</span>
+    <span class="s1">SORT_BY_ENGLISH_ASC</span>
+<span class="s6">} </span><span class="s1">SortType</span><span class="s6">;</span>
+<span class="s0">/* Statistics for one subject. ranges[0..4] means 90+, 80+, 70+, 60+, below 60. */</span>
+<span class="s5">typedef struct </span><span class="s1">SubjectStat </span><span class="s6">{</span>
+    <span class="s5">float </span><span class="s1">maxScore</span><span class="s6">;</span>
+    <span class="s5">float </span><span class="s1">minScore</span><span class="s6">;</span>
+    <span class="s5">float </span><span class="s1">sum</span><span class="s6">;</span>
+    <span class="s5">int </span><span class="s1">passCount</span><span class="s6">;</span>
+    <span class="s5">int </span><span class="s1">excellentCount</span><span class="s6">;</span>
+    <span class="s5">int </span><span class="s1">ranges</span><span class="s6">[</span><span class="s4">5</span><span class="s6">];</span>
+    <span class="s1">Student maxStudent</span><span class="s6">;</span>
+    <span class="s1">Student minStudent</span><span class="s6">;</span>
+<span class="s6">} </span><span class="s1">SubjectStat</span><span class="s6">;</span>
+<span class="s0">/* ---------- Common input helpers, mainly used by all modules ---------- */</span>
+<span class="s5">void </span><span class="s1">clearInputBuffer</span><span class="s6">(</span><span class="s5">void</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">pauseScreen</span><span class="s6">(</span><span class="s5">void</span><span class="s6">);</span>
+<span class="s5">int </span><span class="s1">askYesNo</span><span class="s6">(</span><span class="s5">const char </span><span class="s6">*</span><span class="s1">prompt</span><span class="s6">);</span>
+<span class="s5">int </span><span class="s1">readInt</span><span class="s6">(</span><span class="s5">const char </span><span class="s6">*</span><span class="s1">prompt</span><span class="s6">, </span><span class="s5">int </span><span class="s1">minValue</span><span class="s6">, </span><span class="s5">int </span><span class="s1">maxValue</span><span class="s6">);</span>
+<span class="s5">float </span><span class="s1">readFloat</span><span class="s6">(</span><span class="s5">const char </span><span class="s6">*</span><span class="s1">prompt</span><span class="s6">, </span><span class="s5">float </span><span class="s1">minValue</span><span class="s6">, </span><span class="s5">float </span><span class="s1">maxValue</span><span class="s6">);</span>
+<span class="s5">float </span><span class="s1">readScore</span><span class="s6">(</span><span class="s5">const char </span><span class="s6">*</span><span class="s1">prompt</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">readString</span><span class="s6">(</span><span class="s5">const char </span><span class="s6">*</span><span class="s1">prompt</span><span class="s6">, </span><span class="s5">char </span><span class="s6">*</span><span class="s1">buffer</span><span class="s6">, </span><span class="s5">int </span><span class="s1">size</span><span class="s6">);</span>
+<span class="s0">/* ---------- Linked-list basic tools, Member B ---------- */</span>
+<span class="s1">Node </span><span class="s6">*</span><span class="s1">createList</span><span class="s6">(</span><span class="s5">void</span><span class="s6">);</span>
+<span class="s1">Node </span><span class="s6">*</span><span class="s1">createNode</span><span class="s6">(</span><span class="s1">Student stu</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">freeList</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">clearList</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">int </span><span class="s1">isListEmpty</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">int </span><span class="s1">getListLength</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s1">Node </span><span class="s6">*</span><span class="s1">getLastNode</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s1">Node </span><span class="s6">*</span><span class="s1">getNodeByIndex</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">, </span><span class="s5">int </span><span class="s1">index</span><span class="s6">);</span>
+<span class="s1">Node </span><span class="s6">*</span><span class="s1">findPrevByNum</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">, </span><span class="s5">const char </span><span class="s6">*</span><span class="s1">num</span><span class="s6">);</span>
+<span class="s1">Node </span><span class="s6">*</span><span class="s1">findByNum</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">, </span><span class="s5">const char </span><span class="s6">*</span><span class="s1">num</span><span class="s6">);</span>
+<span class="s5">int </span><span class="s1">isNumExist</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">, </span><span class="s5">const char </span><span class="s6">*</span><span class="s1">num</span><span class="s6">);</span>
+<span class="s5">int </span><span class="s1">isNameExist</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">, </span><span class="s5">const char </span><span class="s6">*</span><span class="s1">name</span><span class="s6">);</span>
+<span class="s5">int </span><span class="s1">appendStudent</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">, </span><span class="s1">Student stu</span><span class="s6">);</span>
+<span class="s5">int </span><span class="s1">insertBeforeNum</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">, </span><span class="s5">const char </span><span class="s6">*</span><span class="s1">beforeNum</span><span class="s6">, </span><span class="s1">Student stu</span><span class="s6">);</span>
+<span class="s5">int </span><span class="s1">removeByNum</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">, </span><span class="s5">const char </span><span class="s6">*</span><span class="s1">num</span><span class="s6">, </span><span class="s1">Student </span><span class="s6">*</span><span class="s1">removed</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">swapStudentData</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">a</span><span class="s6">, </span><span class="s1">Node </span><span class="s6">*</span><span class="s1">b</span><span class="s6">);</span>
+<span class="s0">/* ---------- Student data tools, Member B ---------- */</span>
+<span class="s5">void </span><span class="s1">calculateScore</span><span class="s6">(</span><span class="s1">Student </span><span class="s6">*</span><span class="s1">stu</span><span class="s6">);</span>
+<span class="s5">int </span><span class="s1">isScoreValid</span><span class="s6">(</span><span class="s5">float </span><span class="s1">score</span><span class="s6">);</span>
+<span class="s5">int </span><span class="s1">isNumFormatValid</span><span class="s6">(</span><span class="s5">const char </span><span class="s6">*</span><span class="s1">num</span><span class="s6">);</span>
+<span class="s5">int </span><span class="s1">isNameFormatValid</span><span class="s6">(</span><span class="s5">const char </span><span class="s6">*</span><span class="s1">name</span><span class="s6">);</span>
+<span class="s5">float </span><span class="s1">getStudentScore</span><span class="s6">(</span><span class="s1">Student stu</span><span class="s6">, </span><span class="s5">int </span><span class="s1">subject</span><span class="s6">);</span>
+<span class="s5">const char </span><span class="s6">*</span><span class="s1">getSubjectName</span><span class="s6">(</span><span class="s5">int </span><span class="s1">subject</span><span class="s6">);</span>
+<span class="s1">Student inputStudent</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">, </span><span class="s5">int </span><span class="s1">checkDuplicate</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">inputScores</span><span class="s6">(</span><span class="s1">Student </span><span class="s6">*</span><span class="s1">stu</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">copyStudent</span><span class="s6">(</span><span class="s1">Student </span><span class="s6">*</span><span class="s1">dest</span><span class="s6">, </span><span class="s1">Student src</span><span class="s6">);</span>
+<span class="s0">/* ---------- Student record operations, Member B ---------- */</span>
+<span class="s5">void </span><span class="s1">addStudent</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">deleteStudent</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">deleteByNumMenu</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">deleteFailedStudents</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">deleteAllStudents</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">searchStudent</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">searchByNumMenu</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">searchByNameMenu</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">searchByFuzzyNameMenu</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">searchByScoreRangeMenu</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">searchFailedStudentsMenu</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">searchExcellentStudentsMenu</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">modifyStudent</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">insertStudent</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">displayAllStudents</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">displayStudentDetail</span><span class="s6">(</span><span class="s1">Student stu</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">displaySimpleStudents</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">printStudentHeader</span><span class="s6">(</span><span class="s5">void</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">printStudent</span><span class="s6">(</span><span class="s1">Student stu</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">printStudentDetail</span><span class="s6">(</span><span class="s1">Student stu</span><span class="s6">);</span>
+<span class="s0">/* ---------- Demonstration and help functions, Member A and B ---------- */</span>
+<span class="s5">void </span><span class="s1">initSampleData</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">showProjectHelp</span><span class="s6">(</span><span class="s5">void</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">showMemberDivision</span><span class="s6">(</span><span class="s5">void</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">showFileFormatHelp</span><span class="s6">(</span><span class="s5">void</span><span class="s6">);</span>
+<span class="s0">/* ---------- File functions, Member C ---------- */</span>
+<span class="s5">int </span><span class="s1">loadFromFile</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">, </span><span class="s5">const char </span><span class="s6">*</span><span class="s1">filename</span><span class="s6">);</span>
+<span class="s5">int </span><span class="s1">saveToFile</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">, </span><span class="s5">const char </span><span class="s6">*</span><span class="s1">filename</span><span class="s6">);</span>
+<span class="s5">int </span><span class="s1">backupDataFile</span><span class="s6">(</span><span class="s5">const char </span><span class="s6">*</span><span class="s1">sourceName</span><span class="s6">, </span><span class="s5">const char </span><span class="s6">*</span><span class="s1">backupName</span><span class="s6">);</span>
+<span class="s5">int </span><span class="s1">exportReport</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">, </span><span class="s5">const char </span><span class="s6">*</span><span class="s1">filename</span><span class="s6">);</span>
+<span class="s5">int </span><span class="s1">createEmptyDataFile</span><span class="s6">(</span><span class="s5">const char </span><span class="s6">*</span><span class="s1">filename</span><span class="s6">);</span>
+<span class="s5">int </span><span class="s1">fileExists</span><span class="s6">(</span><span class="s5">const char </span><span class="s6">*</span><span class="s1">filename</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">fileMenu</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s0">/* ---------- Analysis functions, Member C ---------- */</span>
+<span class="s5">void </span><span class="s1">sortMenu</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">statisticMenu</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">sortStudents</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">, </span><span class="s1">SortType type</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">displayTopAndBottom</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">displaySubjectStatistics</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">displayDistribution</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s5">void </span><span class="s1">displayClassSummary</span><span class="s6">(</span><span class="s1">Node </span><span class="s6">*</span><span class="s1">head</span><span class="s6">);</span>
+<span class="s2">#endif</span>
+</pre>
+</body>
+</html>
