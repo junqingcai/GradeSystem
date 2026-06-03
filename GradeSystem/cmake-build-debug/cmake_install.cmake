@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/28350/Documents/Codex/2026-05-30/c-1500-3-1-c-2/outputs/GradeSystem
+# Install script for directory: C:/Users/28350/OneDrive/文档/GitHub/GradeSystem/GradeSystem
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -40,7 +40,7 @@ endif()
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
 if(CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "C:/Users/28350/Documents/Codex/2026-05-30/c-1500-3-1-c-2/outputs/GradeSystem/cmake-build-debug/install_local_manifest.txt"
+  file(WRITE "C:/Users/28350/OneDrive/文档/GitHub/GradeSystem/GradeSystem/cmake-build-debug/install_local_manifest.txt"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()
 if(CMAKE_INSTALL_COMPONENT)
@@ -56,6 +56,6 @@ else()
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "C:/Users/28350/Documents/Codex/2026-05-30/c-1500-3-1-c-2/outputs/GradeSystem/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+  file(WRITE "C:/Users/28350/OneDrive/文档/GitHub/GradeSystem/GradeSystem/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()
