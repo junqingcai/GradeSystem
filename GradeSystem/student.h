@@ -1,33 +1,34 @@
 ﻿/*
- * Student Grade Management System
- * Course Design Source File
- *
- * Project division for three students:
- * Member A:
- *     main.c
- *     Main function, main menu, second-level menus, help page,
- *     member division display and whole process control.
- *
- * Member B:
- *     student.c
- *     Linked-list creation, addition, deletion, search, modification,
- *     insertion, display, input validation and common list tools.
- *
- * Member C:
- *     file.c and analysis.c
- *     Data file reading, saving, backup, export, grade sorting,
- *     grade statistics and score distribution analysis.
- *
- * Data storage:
- *     The system uses a singly linked list in memory.
- *     The system uses data.txt as the persistent data file.
- *
- * Data format in data.txt:
- *     studentNumber studentName cScore mathScore englishScore
- *
- * Example:
- *     2024001 ZhangSan 88 92 80
- */
+学生成绩管理系统
+课程设计源文件
+
+三人项目分工：
+
+成员 A：
+main.c
+负责主函数、主菜单、二级菜单、帮助页面、
+成员分工展示以及整个程序流程控制。
+
+成员 B：
+student.c
+负责链表创建、添加、删除、查找、修改、
+插入、显示、输入合法性检查以及通用链表工具函数。
+
+成员 C：
+file.c 和 analysis.c
+负责数据文件读取、保存、备份、导出、成绩排序、
+成绩统计以及分数分布分析。
+
+数据存储：
+系统在内存中使用单向链表存储数据。
+系统使用 data.txt 作为持久化数据文件。
+
+data.txt 中的数据格式：
+学号 学生姓名 C语言成绩 数学成绩 英语成绩
+
+示例：
+2024001 ZhangSan 88 92 80
+*/
 #ifndef STUDENT_H
 #define STUDENT_H
 #include <stdio.h>

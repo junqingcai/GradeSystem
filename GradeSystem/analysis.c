@@ -1,11 +1,7 @@
-﻿/*
- * Member C responsibility:
- * Grade sorting, grade statistics and score distribution analysis.
- */
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <string.h>
 #include "student.h"
-/* Return 1 when two student records should be swapped for the selected order. */
+// 根据当前选择的排序规则，判断两条学生记录是否需要交换位置。需要交换则返回 1
 static int shouldSwap(Student left, Student right, SortType type) {
     switch (type) {
         case SORT_BY_TOTAL_DESC: return left.total < right.total;
@@ -40,7 +36,7 @@ void sortStudents(Node *head, SortType type) {
         printf("No student record.\n");
         return;
     }
-    /* Swap node data instead of changing links; this is easier for beginners. */
+    /* 交换节点中的数据，而不是改变链表指针，这对初学者更容易理解。 */
     for (i = head->next; i != NULL; i = i->next) {
         for (j = i->next; j != NULL; j = j->next) {
             if (shouldSwap(i->data, j->data, type)) {
@@ -96,7 +92,7 @@ static void initSubjectStat(SubjectStat *stat) {
     memset(&stat->minStudent, 0, sizeof(Student));
     for (i = 0; i < 5; i++) stat->ranges[i] = 0;
 }
-/* Update one subject's max, min, sum, pass/excellent count and range count. */
+/* 更新某一科目的最高分、最低分、总分、及格/优秀人数和分数段人数。 */
 static void updateSubjectStat(SubjectStat *stat, Student stu, float score) {
     int rangeIndex;
     if (score > stat->maxScore) {
@@ -120,7 +116,7 @@ static void collectStatistics(Node *head,
                               int *count,
                               float *totalSum) {
     Node *p;
-    /* The three subjects share the same collection logic. */
+    /* 三门科目使用相同的统计逻辑。 */
     initSubjectStat(cStat);
     initSubjectStat(mathStat);
     initSubjectStat(engStat);
@@ -160,17 +156,17 @@ void displaySubjectStatistics(Node *head) {
     int count;
     float totalSum;
     if (isListEmpty(head)) {
-        printf("No student record.\n");
+        printf("没有学生记录。\n");
         return;
     }
     collectStatistics(head, &cStat, &mathStat, &engStat, &count, &totalSum);
-    printf("\n--- Subject Statistics ---\n");
+    printf("\n--- 科目统计 ---\n");
     printf("%-10s %10s %10s %10s %10s %10s %10s %10s\n",
-           "Subject", "Max", "Min", "Average", "PassNum", "PassRate", "Excellent", "ExRate");
+           "科目", "最高分", "最低分", "平均分", "及格人数", "及格率", "优秀人数", "优秀率");
     printf("--------------------------------------------------------------------------------\n");
-    printSubjectStatLine("C", cStat, count);
-    printSubjectStatLine("Math", mathStat, count);
-    printSubjectStatLine("English", engStat, count);
+    printSubjectStatLine("C语言", cStat, count);
+    printSubjectStatLine("数学", mathStat, count);
+    printSubjectStatLine("英语", engStat, count);
 }
 static void printRangeLine(const char *subjectName, SubjectStat stat) {
     printf("%-10s %10d %10d %10d %10d %10d\n",
@@ -186,22 +182,22 @@ void displayDistribution(Node *head) {
     int count;
     float totalSum;
     if (isListEmpty(head)) {
-        printf("No student record.\n");
+        printf("没有学生记录\n");
         return;
     }
     collectStatistics(head, &cStat, &mathStat, &engStat, &count, &totalSum);
-    printf("\n--- Score Distribution ---\n");
+    printf("\n--- 成绩分布 ---\n");
     printf("%-10s %10s %10s %10s %10s %10s\n",
-           "Subject", "90-100", "80-89", "70-79", "60-69", "Below60");
+           "学科", "90-100", "80-89", "70-79", "60-69", "Below60");
     printf("--------------------------------------------------------------------\n");
-    printRangeLine("C", cStat);
-    printRangeLine("Math", mathStat);
-    printRangeLine("English", engStat);
+    printRangeLine("C语言", cStat);
+    printRangeLine("数学", mathStat);
+    printRangeLine("英语", engStat);
 }
 static void printTopBottomForSubject(const char *subjectName, SubjectStat stat) {
-    printf("\n%s max: %.2f, student: %s %s\n",
+    printf("\n%s 最高分: %.2f, 学生: %s %s\n",
            subjectName, stat.maxScore, stat.maxStudent.num, stat.maxStudent.name);
-    printf("%s min: %.2f, student: %s %s\n",
+    printf("%s 最低分: %.2f, 学生: %s %s\n",
            subjectName, stat.minScore, stat.minStudent.num, stat.minStudent.name);
 }
 void displayTopAndBottom(Node *head) {
@@ -211,13 +207,13 @@ void displayTopAndBottom(Node *head) {
     Node *p;
     Student totalMax, totalMin;
     if (isListEmpty(head)) {
-        printf("No student record.\n");
+        printf("没有学生记录\n");
         return;
     }
     collectStatistics(head, &cStat, &mathStat, &engStat, &count, &totalSum);
-    printTopBottomForSubject("C", cStat);
-    printTopBottomForSubject("Math", mathStat);
-    printTopBottomForSubject("English", engStat);
+    printTopBottomForSubject("C语言", cStat);
+    printTopBottomForSubject("数学", mathStat);
+    printTopBottomForSubject("英语", engStat);
     p = head->next;
     totalMax = p->data;
     totalMin = p->data;
@@ -226,9 +222,9 @@ void displayTopAndBottom(Node *head) {
         if (p->data.total < totalMin.total) totalMin = p->data;
         p = p->next;
     }
-    printf("\nTotal max: %.2f, student: %s %s\n",
+    printf("\n总分最高: %.2f, 学生: %s %s\n",
            totalMax.total, totalMax.num, totalMax.name);
-    printf("Total min: %.2f, student: %s %s\n",
+    printf("总分最低: %.2f, 学生: %s %s\n",
            totalMin.total, totalMin.num, totalMin.name);
 }
 void displayClassSummary(Node *head) {
@@ -237,11 +233,11 @@ void displayClassSummary(Node *head) {
     float totalSum = 0.0f;
     Student bestAverage, worstAverage;
     if (isListEmpty(head)) {
-        printf("No student record.\n");
+        printf("没有学生记录。\n");
         return;
     }
     p = head->next;
-    /* Initialize best/worst students with the first real node. */
+    /* 用第一个实际节点初始化最高分和最低分学生。 */
     bestAverage = p->data;
     worstAverage = p->data;
     while (p != NULL) {
@@ -257,11 +253,11 @@ void displayClassSummary(Node *head) {
         count++;
         p = p->next;
     }
-    printf("\n--- Class Summary ---\n");
-    printf("Student count: %d\n", count);
-    printf("Class total average: %.2f\n", totalSum / (count * 3.0f));
-    printf("All-subject pass count: %d\n", allPassCount);
-    printf("Average excellent count: %d\n", allExcellentCount);
+    printf("\n--- 班级汇总---\n");
+    printf("学生人数: %d\n", count);
+    printf("班级总分平均分: %.2f\n", totalSum / (count * 3.0f));
+    printf("三科全部及格人数: %d\n", allPassCount);
+    printf("平均分达到优秀的人数: %d\n", allExcellentCount);
     printf("Best average student: %s %s %.2f\n",
            bestAverage.num, bestAverage.name, bestAverage.average);
     printf("Lowest average student: %s %s %.2f\n",

@@ -60,25 +60,21 @@ static void showSystemMenu(void) {
     printf("1. 查看项目功能说明\n");
     printf("2. 查看三人分工说明\n");
     printf("3. 查看 data.txt 文件格式\n");
-    printf("4. 初始化示例数据\n");
     printf("0. 返回主菜单\n");
     printf("==============================\n");
 }
 static void systemMenu(Node *head) {
     int choice;
     int running = 1;
+    (void)head;
     /* The system menu is separated from the main menu to keep main() readable. */
     while (running) {
         showSystemMenu();
-        choice = readInt("Choose: ", 0, 4);
+        choice = readInt("Choose: ", 0, 3);
         switch (choice) {
             case 1: showProjectHelp(); break;
             case 2: showMemberDivision(); break;
             case 3: showFileFormatHelp(); break;
-            case 4:
-                initSampleData(head);
-                saveToFile(head, DATA_FILE);
-                break;
             case 0: running = 0; break;
             default: printf("Invalid choice.\n"); break;
         }
@@ -94,8 +90,8 @@ int main(void) {
         return 1;
     }
     printWelcome();
-    /* The program automatically loads data.txt when it starts. */
-    printf("Loading %s ...\n", DATA_FILE);
+    /* Initial demonstration data must come from data.txt. */
+    printf("Loading initial student data from %s ...\n", DATA_FILE);
     loadFromFile(head, DATA_FILE);
     while (running) {
         showMainMenu();
