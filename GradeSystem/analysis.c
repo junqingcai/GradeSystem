@@ -18,22 +18,22 @@ static int shouldSwap(Student left, Student right, SortType type) {
 }
 static const char *getSortTypeName(SortType type) {
     switch (type) {
-        case SORT_BY_TOTAL_DESC: return "total score descending";
-        case SORT_BY_AVERAGE_DESC: return "average score descending";
-        case SORT_BY_C_DESC: return "C score descending";
-        case SORT_BY_MATH_DESC: return "math score descending";
-        case SORT_BY_ENGLISH_DESC: return "English score descending";
-        case SORT_BY_NUM_ASC: return "student number ascending";
-        case SORT_BY_C_ASC: return "C score ascending";
-        case SORT_BY_MATH_ASC: return "math score ascending";
-        case SORT_BY_ENGLISH_ASC: return "English score ascending";
-        default: return "unknown";
+        case SORT_BY_TOTAL_DESC: return "按总分从高到低排序";
+        case SORT_BY_AVERAGE_DESC: return "按平均分从高到低排序";
+        case SORT_BY_C_DESC: return "按C语言分数从高到低排序";
+        case SORT_BY_MATH_DESC: return "按数学分数从高到低排序";
+        case SORT_BY_ENGLISH_DESC: return "按英语分数从高到低排序";
+        case SORT_BY_NUM_ASC: return "按学号从小到大排序";
+        case SORT_BY_C_ASC: return "按C语言分数从低到高排序";
+        case SORT_BY_MATH_ASC: return "按数学分数从低到高排序";
+        case SORT_BY_ENGLISH_ASC: return "按英语分数从高到低排序";
+        default: return "未知";
     }
 }
 void sortStudents(Node *head, SortType type) {
     Node *i, *j;
     if (isListEmpty(head)) {
-        printf("No student record.\n");
+        printf("没有学生记录。\n");
         return;
     }
     /* 交换节点中的数据，而不是改变链表指针，这对初学者更容易理解。 */
@@ -44,31 +44,31 @@ void sortStudents(Node *head, SortType type) {
             }
         }
     }
-    printf("Sorted by %s.\n", getSortTypeName(type));
+    printf("已按 %s 排序。\n", getSortTypeName(type));
     displayAllStudents(head);
 }
 static void showSortMenu(void) {
-    printf("\n--- Grade Sort ---\n");
-    printf("1. Total score descending\n");
-    printf("2. Average score descending\n");
-    printf("3. C score descending\n");
-    printf("4. Math score descending\n");
-    printf("5. English score descending\n");
-    printf("6. Student number ascending\n");
-    printf("7. C score ascending\n");
-    printf("8. Math score ascending\n");
-    printf("9. English score ascending\n");
-    printf("0. Return\n");
+    printf("\n--- 成绩排序功能 ---\n");
+    printf("1. 总分降序\n");
+    printf("2. 平均分降序\n");
+    printf("3. C语言成绩降序\n");
+    printf("4. 数学成绩降序\n");
+    printf("5. 英语成绩降序\n");
+    printf("6. 学号升序\n");
+    printf("7. C语言成绩升序\n");
+    printf("8. 数学成绩升序\n");
+    printf("9. 英语成绩升序\n");
+    printf("0. 返回\n");
 }
 void sortMenu(Node *head) {
     int choice, running = 1;
     if (isListEmpty(head)) {
-        printf("No student record.\n");
+        printf("没有学生记录。\n");
         return;
     }
     while (running) {
         showSortMenu();
-        choice = readInt("Choose: ", 0, 9);
+        choice = readInt("选择： ", 0, 9);
         if (choice == 0) running = 0;
         else sortStudents(head, (SortType)choice);
     }
@@ -258,29 +258,29 @@ void displayClassSummary(Node *head) {
     printf("班级总分平均分: %.2f\n", totalSum / (count * 3.0f));
     printf("三科全部及格人数: %d\n", allPassCount);
     printf("平均分达到优秀的人数: %d\n", allExcellentCount);
-    printf("Best average student: %s %s %.2f\n",
+    printf("平均分最高的学生： %s %s %.2f\n",
            bestAverage.num, bestAverage.name, bestAverage.average);
-    printf("Lowest average student: %s %s %.2f\n",
+    printf("平均分最低的学生 %s %s %.2f\n",
            worstAverage.num, worstAverage.name, worstAverage.average);
 }
 static void showStatisticMenu(void) {
-    printf("\n--- Grade Statistics ---\n");
-    printf("1. Subject max/min/average/pass/excellent\n");
-    printf("2. Score distribution\n");
-    printf("3. Top and bottom students\n");
-    printf("4. Class summary\n");
-    printf("5. All statistics\n");
-    printf("0. Return\n");
+    printf("\n--- 成绩数据 ---\n");
+    printf("1. 各科最高分/最低分/平均分/及格情况/优秀情况\n");
+    printf("2. 成绩分布\n");
+    printf("3. 最高分与最低分学生\n");
+    printf("4. 班级总结\n");
+    printf("5. 全部数据\n");
+    printf("0. 返回\n");
 }
 void statisticMenu(Node *head) {
     int choice, running = 1;
     if (isListEmpty(head)) {
-        printf("No student record.\n");
+        printf("没有学生记录。\n");
         return;
     }
     while (running) {
         showStatisticMenu();
-        choice = readInt("Choose: ", 0, 5);
+        choice = readInt("选择： ", 0, 5);
         switch (choice) {
             case 1: displaySubjectStatistics(head); break;
             case 2: displayDistribution(head); break;
@@ -293,7 +293,7 @@ void statisticMenu(Node *head) {
                 displayClassSummary(head);
                 break;
             case 0: running = 0; break;
-            default: printf("Invalid choice.\n"); break;
+            default: printf("无效选择。\n"); break;
         }
     }
 }
