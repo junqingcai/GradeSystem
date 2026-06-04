@@ -4,14 +4,14 @@
 #include "student.h"
 //在备份和加载前，先检查数据文件是否存在
 int fileExists(const char *filename) {
-    FILE *fp = fopen(filename, "r");
+    FILE *fp = fopen(filename, "r"); //如果能以只读方式打开文件，说明文件存在；否则不存在。
     if (fp == NULL) return 0;
     fclose(fp);
     return 1;
 }
 //第一次运行程序时，若data,txt不存在，则创建一个空的数据文件
 int createEmptyDataFile(const char *filename) {
-    FILE *fp = fopen(filename, "a");
+    FILE *fp = fopen(filename, "a"); //"a" 表示追加模式。如果文件不存在，就会自动创建；如果文件已经存在，不会清空原文件。
     if (fp == NULL) {
         printf("文件创建失败 %s.\n", filename);
         return 0;
@@ -73,6 +73,7 @@ int loadFromFile(Node *head, const char *filename) {
            count, badCount, duplicateCount);
     return count;
 }
+//把源文件复制到备份文件中
 int backupDataFile(const char *sourceName, const char *backupName) {
     FILE *src, *dst;
     int ch, count = 0;
@@ -97,6 +98,7 @@ int backupDataFile(const char *sourceName, const char *backupName) {
     printf("已将 %d 个字符备份到 %s。\n", count, backupName);
     return 1;
 }
+//把链表中的学生数据保存到文件中
 int saveToFile(Node *head, const char *filename) {
     FILE *fp;
     Node *p;
@@ -135,6 +137,7 @@ static void writeReportStudent(FILE *fp, Student stu) {
             stu.num, stu.name, stu.cScore, stu.mathScore,
             stu.englishScore, stu.total, stu.average);
 }
+//导出一个更适合查看的成绩报表
 int exportReport(Node *head, const char *filename) {
     FILE *fp;
     Node *p;
@@ -158,6 +161,7 @@ int exportReport(Node *head, const char *filename) {
     printf("已将 %d 条记录导出到 %s。\n", count, filename);
     return count;
 }
+//文件管理模块的菜单函数
 static void showFileMenu(void) {
     printf("\n--- 文件管理 ---\n");
     printf("1.保存到 data.txt\n");
